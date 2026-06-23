@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE</title>
+<style>
+  * { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    background: #0d0e10;
+    color: #e8e6e1;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  h1 {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: 30px; font-weight: 400; letter-spacing: 0.12em; margin: 0;
+    text-transform: uppercase; color: #6fd8ff;
+    text-shadow: 0 0 6px #3fa8e0, 0 0 16px #2a7ab8aa, 0 0 28px #1a5a8866;
+  }
+  .sub { color: #6b6f76; font-size: 12px; margin: 4px 0 4px; letter-spacing: 0.05em; }
+  .hint { color: #52555a; font-size: 10.5px; margin: 0 0 18px; font-style: italic; }
+  .topbar { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .iconbtn {
+    background: none; border: 1px solid #3a3d42; color: #6b6f76;
+    padding: 6px 10px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 11px;
+  }
+  .iconbtn:hover { border-color: #5a5d62; color: #9a9fa6; }
+  .btnrow { display: flex; gap: 6px; }
+  .banner { margin-bottom: 28px; background: #15171a; border: 1px solid #2a2d31; border-radius: 6px;
+    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .banner .lbl { font-size: 10px; color: #6b6f76; letter-spacing: 0.1em; }
+  .banner .lvl { font-size: 22px; font-weight: 900; color: #f2c14e; }
+  .banner .xp { font-size: 16px; font-weight: 700; color: #e8e6e1; text-align: right; }
+  .skills { margin-bottom: 28px; background: #15171a; border: 1px solid #232629; border-radius: 6px;
+    padding: 14px 16px; display: grid; gap: 12px; }
+  .skillrow .top { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+  .skillrow .name { font-weight: 800; letter-spacing: 0.04em; }
+  .skillrow .lv { color: #8a8f98; }
+  .barbg { height: 6px; background: #0d0e10; border-radius: 3px; overflow: hidden; }
+  .barfg { height: 100%; transition: width 0.4s ease; }
+  .day {
+    margin-bottom: 14px; border: 1px solid #232629; border-radius: 6px; background: #15171a; overflow: hidden;
+  }
+  .dayhead { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1f2226; }
+  .dayhead .daynum { font-size: 11px; color: #6b6f76; letter-spacing: 0.1em; display: block; }
+  .dayhead .titles { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .dayhead .focus { font-size: 16px; font-weight: 800; letter-spacing: 0.04em; }
+  .dayhead .sub { font-size: 12px; color: #8a8f98; }
+  .exrow {
+    display: flex; align-items: center; gap: 12px; padding: 10px 8px; margin: 2px; border-radius: 4px;
+    cursor: pointer; transition: background 0.15s ease;
+  }
+  .exrow:active { transform: scale(0.99); }
+  .checkbox {
+    width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+    border: 1.5px solid #3a3d42; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900;
+  }
+  .exname { flex: 1; font-size: 14px; }
+  .exname.done { color: #8a8f98; text-decoration: line-through; }
+  .exreps { font-size: 12px; color: #6b6f76; text-align: right; white-space: nowrap; }
+  .exxp { font-size: 10px; font-weight: 700; min-width: 38px; text-align: right; }
+  .rest { padding: 8px 16px 12px; font-size: 11px; color: #52555a; font-style: italic; }
+  .sidequests { margin-bottom: 20px; border: 1px solid #2a2d31; border-radius: 6px; background: #121315; overflow: hidden; }
+  .sqhead { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; }
+  .sqhead .title { font-size: 14px; font-weight: 800; color: #d8a23a; letter-spacing: 0.04em; }
+  .sqhead .desc { font-size: 11px; color: #6b6f76; margin-top: 2px; }
+  .sqhead .chevron { font-size: 18px; color: #6b6f76; transition: transform 0.2s ease; }
+  .sqbody { padding: 0 12px 12px; }
+  .sqskill { margin-bottom: 10px; border: 1px solid #232629; border-radius: 6px; background: #15171a; overflow: hidden; }
+  .sqskillhead { padding: 10px 14px; border-bottom: 1px solid #1f2226; }
+  .footer-tip { text-align: center; color: #3a3d42; font-size: 11px; margin: 24px 0 20px; letter-spacing: 0.05em; }
+  .bigbtn {
+    width: 100%; padding: 14px 16px; border-radius: 6px; font-family: inherit; font-weight: 800;
+    font-size: 13px; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; border: 1px solid;
+  }
+  .bigbtn.endweek { background: #15171a; border-color: #2d6e4e; color: #4ea876; margin-bottom: 8px; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 60;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: #15171a; border-radius: 8px; padding: 22px 20px; max-width: 360px; width: 100%;
+  }
+  .modal.danger { border: 1px solid #c4451c; text-align: center; }
+  .modal .mtitle { font-size: 15px; font-weight: 800; color: #f2efe9; margin-bottom: 8px; letter-spacing: 0.02em; }
+  .modal .mbody { font-size: 12px; color: #8a8f98; margin-bottom: 12px; line-height: 1.5; }
+  .modal .mwarn { font-size: 11px; color: #c4451c; margin-bottom: 18px; font-weight: 700; }
+  .modal .mrow { display: flex; gap: 10px; }
+  .modal button.cancel {
+    flex: 1; background: transparent; border: 1px solid #3a3d42; color: #8a8f98;
+    padding: 10px 0; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .modal button.confirm-green {
+    flex: 1; background: linear-gradient(90deg,#2d6e4e,#4ea876); border: none; color: #0d0e10;
+    padding: 10px 0; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
+  }
+  .modal button.confirm-red {
+    flex: 1; background: linear-gradient(90deg,#8a2a14,#c4451c); border: none; color: #0d0e10;
+    padding: 10px 0; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
+  }
+  #overlay-layer { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
+
+  .ach-tab {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    right: 0; transition: right 0.32s cubic-bezier(.2,.8,.2,1);
+    background: #15171a; border: 1px solid #2a2d31; border-right: none;
+    border-radius: 10px 0 0 10px; padding: 18px 8px; cursor: pointer; z-index: 90;
+    writing-mode: vertical-rl; text-orientation: mixed; color: #c9a227;
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.1em; box-shadow: -2px 0 10px rgba(0,0,0,0.4);
+  }
+  .ach-tab.shifted { right: min(420px, 92vw); border-radius: 0 10px 10px 0; border: 1px solid #2a2d31; }
+
+  .lb-tab {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    left: 0; transition: left 0.32s cubic-bezier(.2,.8,.2,1);
+    background: #15171a; border: 1px solid #2a2d31; border-left: none;
+    border-radius: 0 10px 10px 0; padding: 18px 8px; cursor: pointer; z-index: 90;
+    writing-mode: vertical-rl; text-orientation: mixed; color: #6fd8ff;
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.1em; box-shadow: 2px 0 10px rgba(0,0,0,0.4);
+  }
+  .lb-tab.shifted { left: min(420px, 92vw); border-radius: 10px 0 0 10px; border: 1px solid #2a2d31; }
+  .lb-panel-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 80;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .lb-panel-overlay.open { opacity: 1; pointer-events: auto; }
+  .lb-panel {
+    position: fixed; top: 0; left: 0; height: 100vh; min-height: 100%; width: min(420px, 92vw);
+    background: #0a0b0d; border-right: 1px solid #2a2d31; z-index: 81;
+    transform: translateX(-100%); transition: transform 0.32s cubic-bezier(.2,.8,.2,1);
+    overflow-y: auto; padding: 20px 16px 40px; box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+  }
+  .lb-panel.open { transform: translateX(0); }
+  .lb-row {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 8px;
+    background: #131519; border: 1px solid #232629; border-radius: 8px;
+  }
+  .lb-row.me { border-color: #3a5ac4; background: #131a2e; }
+  .lb-rank { font-size: 14px; font-weight: 900; color: #6b6f76; width: 22px; text-align: center; }
+  .lb-rank.top { color: #e8c65a; }
+  .lb-name { flex: 1; font-size: 13px; font-weight: 700; }
+  .lb-score { font-size: 12px; color: #8a8f98; text-align: right; }
+  .lb-empty {
+    text-align: center; color: #52555a; font-size: 12px; padding: 30px 16px;
+    border: 1px dashed #2a2d31; border-radius: 8px; line-height: 1.6;
+  }
+  .ach-panel-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 80;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .ach-panel-overlay.open { opacity: 1; pointer-events: auto; }
+  .ach-panel {
+    position: fixed; top: 0; right: 0; height: 100vh; min-height: 100%; width: min(420px, 92vw);
+    background: #0a0b0d; border-left: 1px solid #2a2d31; z-index: 81;
+    transform: translateX(100%); transition: transform 0.32s cubic-bezier(.2,.8,.2,1);
+    overflow-y: auto; padding: 20px 16px 40px; box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+  }
+  .ach-panel.open { transform: translateX(0); }
+  .ach-close { background: none; border: 1px solid #3a3d42; color: #8a8f98; padding: 6px 10px;
+    border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 12px; }
+  .ach-title { font-size: 20px; font-weight: 900; color: #f2efe9; letter-spacing: 0.04em; margin: 0; text-transform: uppercase; }
+  .ach-sub { color: #6b6f76; font-size: 11px; margin: 4px 0 18px; letter-spacing: 0.04em; }
+  .cape-stage {
+    background: radial-gradient(ellipse at 50% 30%, #131a2e 0%, #0a0b14 60%, #050508 100%);
+    border-radius: 10px; border: 1px solid #1c2030; padding: 12px;
+    display: flex; justify-content: center; margin-bottom: 18px; position: relative; overflow: hidden;
+  }
+  .legend { display: grid; gap: 8px; margin-top: 4px; }
+  .legend-row { display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; padding: 6px 10px; background: #131519; border: 1px solid #232629; border-radius: 6px; }
+  .legend-row .lname { display: flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 0.04em; }
+  .legend-row .lstars { color: #6b6f76; font-size: 10px; }
+  .star-anim { animation: starPulse 2.4s ease-in-out infinite; }
+  @keyframes starPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+  .maxcape-banner {
+    text-align: center; padding: 10px; margin-bottom: 14px; border-radius: 8px;
+    background: linear-gradient(90deg, #1a1408, #2a2008, #1a1408);
+    border: 1px solid #8a6d1a; color: #e8c65a; font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+  }
+  .xp-popup {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+    font-weight: 800; font-size: 13px; pointer-events: none; z-index: 40;
+  }
+  @keyframes popUp {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(0.8); }
+    15% { opacity: 1; transform: translate(-50%, -4px) scale(1.05); }
+    30% { transform: translate(-50%, -8px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
+  }
+  .xp-popup.anim { animation: popUp 1.8s ease forwards; }
+  .levelbanner {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 50;
+    padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  @keyframes levelBanner {
+    0% { opacity: 0; transform: translate(-50%, -10px) scale(0.9); }
+    10% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    85% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -10px) scale(0.95); }
+  }
+  .levelbanner.anim { animation: levelBanner 2.2s ease forwards; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="overlay-layer"></div>
+
+<script>
+window.addEventListener('error', function(e) {
+  try {
+    const el = document.createElement('div');
+    el.style.position = 'fixed';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.right = '0';
+    el.style.zIndex = '99999';
+    el.style.background = '#3a0a0a';
+    el.style.color = '#ffb3b3';
+    el.style.fontFamily = 'monospace';
+    el.style.fontSize = '11px';
+    el.style.padding = '10px';
+    el.style.whiteSpace = 'pre-wrap';
+    el.style.maxHeight = '40vh';
+    el.style.overflowY = 'auto';
+    el.textContent = 'JS ERROR: ' + (e.message || 'unknown') +
+      '\nFile: ' + (e.filename || '?') + ':' + (e.lineno || '?') +
+      (e.error && e.error.stack ? '\n' + e.error.stack : '');
+    document.body.appendChild(el);
+  } catch (ignored) {}
+});
+// ===================== XP / LEVEL MATH (RuneScape-style curve) =====================
+function xpForLevel(level) {
+  let points = 0;
+  for (let n = 1; n < level; n++) points += Math.floor(n + 300 * Math.pow(2, n / 7));
+  const raw = Math.floor(points / 4);
+  const raw99 = 13034431; // raw XP for level 99, precomputed constant
+  const target99 = 43820; // ~2.7 years at typical weekly pace
+  if (raw === 0) return 0;
+  return Math.round(target99 * Math.pow(raw / raw99, 0.5));
+}
+const LEVEL_TABLE = (() => {
+  const t = [0];
+  for (let lvl = 1; lvl <= 99; lvl++) t.push(xpForLevel(lvl + 1));
+  return t;
+})();
+function getLevel(xp) {
+  let lvl = 1;
+  for (let i = 1; i <= 99; i++) { if (xp >= LEVEL_TABLE[i]) lvl = i + 1; else break; }
+  return Math.min(lvl, 99);
+}
+function xpProgress(xp) {
+  const level = getLevel(xp);
+  if (level >= 99) return { level, pct: 100 };
+  const floor = LEVEL_TABLE[level - 1], ceil = LEVEL_TABLE[level];
+  return { level, pct: ((xp - floor) / (ceil - floor)) * 100 };
+}
+function xpForExercise(ex) {
+  if (ex.diff === 0) return 0;
+  const base = ex.unit === 'sec' ? ex.reps * 0.8 : ex.reps * 1.6;
+  return Math.round(base * ex.diff);
+}
+
+// Reference library of common exercises with pre-set difficulty, used for
+// live autocomplete suggestions in the custom exercise field. Covers
+// bodyweight strength moves, stretches, yoga poses, and cardio drills.
+// Falls back to keyword-based estimation only for names not found here.
+// Each section tagged with its skill so suggestion chips can be colored
+// and icon-tagged by body part. Sections that don't map to one obvious
+// body part (stretches, equipment extras) are assigned to the skill they
+// most directly target.
+const EXERCISE_LIBRARY_BY_SKILL = {
+  CHEST: [
+    ['Push-ups', 3], ['Wide push-ups', 3], ['Diamond push-ups', 5], ['Incline push-ups', 2],
+    ['Decline push-ups', 4], ['Knee push-ups', 1.5], ['Pike push-ups', 5], ['Clap push-ups', 6],
+    ['Archer push-ups', 5.5], ['Spiderman push-ups', 4.5], ['Wall push-ups', 1.5],
+    ['Chest dips', 4], ['Diamond push-up holds', 4.5], ['Staggered push-ups', 3.5],
+    ['Slow-tempo push-ups', 3.5], ['Negative push-ups', 3.5], ['Pause push-ups', 4],
+    ['Hindu push-ups', 3.5], ['Explosive push-ups', 5], ['One-arm push-up (assisted)', 6],
+    ['Push-up to plank hold', 3.5], ['Cross-body push-ups', 4], ['Typewriter push-ups', 5],
+    ['Push-up walkouts', 3], ['Elevated feet push-ups', 4], ['Close-grip push-ups (chest focus)', 4],
+    ['Push-up shoulder taps', 3.5], ['Push-up rotation (T push-up)', 4.5], ['Push-up plus (scap push)', 3],
+    ['Wide-to-narrow push-ups', 4], ['Push-up isometric squeeze', 3], ['Standing chest squeeze', 1.5],
+    ['Chest opener stretch', 1.5], ['Doorway chest stretch', 1.5], ['Push-up pyramid ladder', 4.5],
+    ['Push-up to side plank', 4], ['Floor press hold', 3], ['Wall chest press', 1.5],
+    ['Incline diamond push-ups', 4], ['Decline diamond push-ups', 5.5], ['Push-up clap behind back', 6.5],
+    ['Push-up finger-tip', 4.5], ['Push-up fist', 4], ['Push-up knuckle', 4.5],
+    ['Sphinx push-ups', 3], ['Chest squeeze plank', 3.5], ['Push-up hold bottom', 4],
+    ['Push-up hold top', 2.5], ['Push-up 21s', 4.5], ['Push-up ladder descending', 4],
+    ['Cobra push-up', 3], ['Spiderman plank push-up', 4.5],
+  ],
+  BACK: [
+    ['Pull-ups', 5.5], ['Chin-ups', 5], ['Assisted pull-ups', 3], ['Negative pull-ups', 4],
+    ['Inverted rows', 4], ['Towel rows (door anchor)', 4], ['Superman holds', 2], ['Bird dogs', 2],
+    ['Reverse snow angels', 3], ['Prone Y-raises', 2.5], ['Prone W-raises', 2.5],
+    ['Renegade rows (no weight)', 4], ['Scapular pull-ups', 3], ['Wide-grip pull-ups', 6],
+    ['Close-grip pull-ups', 5.5], ['Commando pull-ups', 5.5], ['Towel pull-ups', 6],
+    ['Door frame rows', 3.5], ['Table rows', 3.5], ['Superman swimmers', 2.5],
+    ['Reverse plank', 3], ['Reverse plank pulses', 3.5], ['Prone T-raises', 2.5],
+    ['Lat stretch (overhead)', 1.5], ['Cat stretch (lat focus)', 1.5], ['Child\u2019s pose lat reach', 1.5],
+    ['Bridge with arm reach', 2.5], ['Banded-free pull-apart (arms only)', 1.5], ['Scapular retraction hold', 2],
+    ['Prone cobra', 2.5], ['Swimmer kicks', 3], ['Back extension (floor)', 2.5],
+    ['Reverse fly (prone, no weight)', 2], ['Wall slides', 1.5], ['Doorframe rows', 3.5],
+    ['Pull-up negatives slow', 4.5], ['Flexed-arm hang', 4], ['Dead hang', 2.5],
+    ['Scapular shrugs (hang)', 2.5], ['L-sit pull-up progression', 6], ['Archer pull-ups', 6.5],
+    ['One-arm row hold (table)', 5], ['Bent-over reach back', 2], ['Standing back extension', 2],
+    ['Thread the needle stretch', 1.5], ['Sphinx to cobra flow', 1.5], ['Superman hold pulses', 2.5],
+    ['Reverse snow angels (prone)', 3], ['Y-raise to W-raise flow', 3], ['Bird dog crunch', 2.5],
+    ['Prone swimmer reach', 2.5],
+  ],
+  SHOULDERS: [
+    ['Lateral raises (no weight)', 1.5], ['Front raises (no weight)', 1.5], ['Y-T-W raises', 2.5],
+    ['Wall walks', 5], ['Handstand hold', 6], ['Wall handstand', 6], ['Plank to downward dog', 3],
+    ['Arm circles', 1.5], ['Shoulder taps', 2], ['Crow pose', 5.5], ['Pike walk', 4],
+    ['Shoulder stretch (cross-body)', 1.5], ['Pike push-ups (shoulder focus)', 5],
+    ['Wall handstand hold (chest to wall)', 5.5], ['Wall handstand hold (back to wall)', 6],
+    ['Freestanding handstand attempt', 6.5], ['Handstand kick-up practice', 5],
+    ['Plank shoulder circles', 2.5], ['Downward dog hold', 2], ['Downward dog pike walk', 3.5],
+    ['Dolphin pose', 3], ['Dolphin push-ups', 4.5], ['Pike walk-outs', 3.5],
+    ['Wall slide raises', 2], ['Arm circle pulses (forward)', 1.5], ['Arm circle pulses (backward)', 1.5],
+    ['Scapular push-ups (plank)', 3], ['Shoulder taps (slow)', 2], ['Shoulder taps (fast)', 2.5],
+    ['Handstand shoulder shrugs', 5.5], ['Wall walk descending', 4.5], ['Plank to pike jump', 4],
+    ['Shoulder dislocates (arm sweep)', 1.5], ['Overhead reach stretch', 1.5], ['Doorway shoulder stretch', 1.5],
+    ['Eagle arms stretch', 1.5], ['Pike push-up negatives', 5], ['Wall handstand shoulder taps', 6.5],
+    ['Crab walk shoulder press feel', 3], ['Plank jack shoulder stabilize', 3], ['Inchworm shoulder hold', 3],
+    ['Front raise hold', 2], ['Lateral raise hold', 2], ['T-stabilization (side plank reach)', 3.5],
+    ['Around-the-world arm circles', 2], ['Shoulder taps with push-up', 3.5], ['Handstand wall climb', 5],
+    ['Pike stretch hold', 2], ['Standing shoulder roll', 1], ['Cross-body shoulder pull', 1.5],
+    ['Thoracic rotation reach', 1.5],
+  ],
+  ARMS: [
+    ['Close-grip push-ups', 4], ['Tricep extensions (floor)', 3.5], ['Plank to push-up', 4],
+    ['Pseudo planche lean', 5], ['Tricep dips (chair/bench)', 3.5], ['Bench dips', 4],
+    ['Diamond push-ups (tricep focus)', 5], ['Tricep push-up (elbows in)', 4],
+    ['Reverse plank dips', 5], ['Tricep dip hold', 4], ['Bench dip negatives', 4.5],
+    ['Wall tricep push', 2], ['Tricep kickback (no weight)', 2], ['Forearm plank to tricep ext', 3.5],
+    ['Decline tricep dips', 5], ['Bodyweight curl (door frame pull)', 2.5],
+    ['Static bicep hold (table pull)', 2.5], ['Isometric curl (self-resisted)', 2.5],
+    ['Self-resisted curl (opposite hand)', 2.5], ['Towel-less curl squeeze', 2],
+    ['Forearm plank hold', 3], ['Wrist circles', 1], ['Finger push-ups (fingertip)', 4],
+    ['Plank shoulder-to-tricep transition', 3.5], ['Diamond plank hold', 4],
+    ['Close-grip plank hold', 3.5], ['Tricep push-up pulse', 4],
+    ['Arm wrestler hold (self-resisted)', 2.5], ['Bicep peak hold (flex)', 1.5],
+    ['Tricep dip with leg extended', 5], ['Single-arm plank reach', 4.5],
+    ['Push-up to tricep stretch', 2.5], ['Overhead tricep stretch', 1.5],
+    ['Cross-body tricep stretch', 1.5], ['Forearm stretch (palm push)', 1],
+    ['Wrist flexor stretch', 1], ['Plank arm taps (alternating)', 3],
+    ['Decline diamond push-up (arm focus)', 5.5], ['Spiderman push-up (arm focus)', 4.5],
+    ['Archer push-up (arm focus)', 5.5], ['Tricep extension plank walkout', 4],
+    ['Bicep isometric flex hold', 1.5], ['Door frame bicep pull', 2.5],
+    ['Self-resisted hammer curl', 2.5], ['Plank-up-down (tricep burner)', 4],
+    ['Tricep dip pulse', 4.5], ['Narrow push-up hold', 3.5], ['Forearm walk-out push-up', 4],
+    ['Single-arm push-up progression', 6], ['Tricep stretch overhead hold', 1.5],
+  ],
+  ABS: [
+    ['Sit-ups', 2.5], ['Crunches', 2], ['Reverse crunches', 2.5], ['Bicycle crunches', 2],
+    ['Plank', 2.5], ['Side plank', 3], ['Hollow body hold', 4], ['Hollow rocks', 4],
+    ['Leg raises', 3], ['Russian twists', 2], ['V-ups', 3.5], ['Toe touches', 2],
+    ['Mountain climbers', 2.5], ['Flutter kicks', 2.5], ['Dead bug', 2], ['Plank shoulder taps', 3],
+    ['Ab wheel rollouts (no wheel, slide)', 5], ['Sit-up twists', 2.5], ['Heel touches', 1.5],
+    ['Spinal twist (seated)', 1.5], ['Scissor kicks', 2.5], ['Flutter kicks (slow)', 3],
+    ['Leg raise holds', 3.5], ['Hanging knee raises (bar)', 4.5], ['Hanging leg raises (bar)', 5.5],
+    ['Plank with leg lift', 3], ['Plank with hip dip', 3], ['Side plank with leg lift', 4],
+    ['Side plank rotation (open book)', 4], ['Reverse crunch hold', 3], ['Crunch hold (top)', 2.5],
+    ['Bicycle crunch slow', 2.5], ['Standing oblique crunch', 1.5], ['Standing knee-to-elbow', 1.5],
+    ['Lying windshield wipers', 4], ['Seated leg raises', 2.5], ['Plank knee-to-elbow', 3],
+    ['Plank jacks (core focus)', 4], ['Star plank (side plank reach)', 4.5], ['Dead bug pulses', 2],
+    ['Hollow hold rocks (slow)', 4.5], ['Tuck hold (knees to chest)', 3.5], ['V-sit hold', 4],
+    ['Boat pose', 3.5], ['Boat pose pulses', 4], ['Plank to pike', 4], ['Plank up-downs (core)', 3.5],
+    ['Sit-through (core rotation)', 3.5], ['Spider plank (knee to elbow)', 3.5],
+    ['Hollow body rock to V-up', 4.5], ['Standing bicycle crunch', 2], ['Side bend (standing)', 1.5],
+    ['Plank reach-through', 3.5], ['Forearm plank march', 3], ['Toe-to-bar progression (bar)', 5.5],
+    ['Crunch with leg extension', 2.5], ['Reverse plank leg lift', 4],
+  ],
+  LEGS: [
+    ['Squats', 2.5], ['Bodyweight squats', 2.5], ['Sumo squats', 2.5], ['Jump squats', 4.5],
+    ['Pistol squats', 5.5], ['Cossack squats', 4], ['Squat pulses', 2.5], ['Squat jacks', 3],
+    ['Lunges', 3], ['Reverse lunges', 3], ['Walking lunges', 3], ['Jump lunges', 5],
+    ['Curtsy lunges', 3.5], ['Lateral lunges', 3], ['Bulgarian split squats (chair)', 4.5],
+    ['Calf raises', 1.5], ['Single-leg calf raises', 2.5], ['Glute bridges', 2],
+    ['Single-leg glute bridge', 3.5], ['Hip thrusts', 2.5], ['Single-leg hip thrust', 4],
+    ['Frog pumps', 2], ['Wall sit', 3], ['Donkey kicks', 2], ['Step-ups (chair/stairs)', 3],
+    ['Box jumps (low surface)', 5], ['Skater jumps', 2.5], ['Fire hydrants', 2],
+    ['Good mornings (bodyweight)', 2], ['Deadlifts (bodyweight hinge)', 3.5], ['Single-leg deadlift', 4.5],
+    ['Goblet squat (no weight)', 3], ['Hip flexor stretch', 1.5], ['Hamstring stretch', 1.5],
+    ['Quad stretch (standing)', 1.5], ['Squat hold (bottom position)', 3.5], ['Wall sit pulses', 3.5],
+    ['Single-leg squat (assisted)', 4.5], ['Skater squats', 4], ['Reverse lunge to knee drive', 4],
+    ['Lunge pulses', 3], ['Side lunges', 3], ['Lateral squat walk', 3], ['Squat to calf raise', 3],
+    ['Standing leg curl (no equipment)', 2], ['Quad pulses (standing)', 2], ['Wall sit with leg extension', 4],
+    ['Squat jump to tuck', 5.5], ['Broad jump', 4.5], ['Lateral bounds', 4],
+    ['Curtsy lunge to side kick', 4], ['Sumo squat pulses', 3], ['Glute bridge march', 3],
+    ['Single-leg glute bridge pulses', 4], ['Standing calf raise hold', 2], ['Pistol squat negatives', 5],
+    ['Shrimp squats', 5.5], ['Cossack squat hold', 4], ['Step-down (eccentric)', 3.5],
+    ['Frog stretch', 1.5], ['Butterfly stretch (groin)', 1.5], ['Pigeon pose (hip stretch)', 2],
+    ['Standing IT band stretch', 1.5], ['Heel-to-glute walk', 2], ['High knee march', 2],
+  ],
+  CARDIO: [
+    ['Jumping jacks', 1.5], ['High knees', 2], ['Butt kicks', 1.5], ['Burpees', 5],
+    ['Star jumps', 3], ['Shadow boxing', 2], ['Jump rope (or imaginary)', 2], ['Fast feet', 1.5],
+    ['Sprawl-outs', 4], ['Tuck jumps', 4], ['Side-to-side hops', 2], ['Speed skaters', 3],
+    ['High knee sprints (in place)', 3], ['Squat thrusts', 4], ['Skipping (in place)', 2],
+    ['Burpee with push-up', 5.5], ['Burpee with tuck jump', 6], ['Half burpees (no push-up)', 4],
+    ['Mountain climber sprints', 3], ['Jumping lunges (cardio pace)', 5], ['Plank jacks (cardio pace)', 4],
+    ['Cross-jacks', 2], ['Power skips', 3], ['Squat jump pulses', 4.5], ['180 jump squats', 4.5],
+    ['Lateral shuffle', 2], ['Boxer shuffle', 2], ['Running in place', 2], ['High knee skips', 2.5],
+    ['Butt kick sprints', 2], ['Star jump pulses', 3], ['Tuck jump pulses', 4.5],
+    ['Side shuffle with low squat', 3], ['Speed skater hops', 3.5], ['Jump rope double-time', 2.5],
+    ['Quick feet ladder drill (imaginary)', 2], ['Burpee broad jump', 6], ['Squat thrust to jump', 4.5],
+    ['Football run (high knees forward)', 2.5], ['Carioca (lateral cross-step)', 2.5],
+    ['Jump squats with reach', 5], ['Standing sprint arms (no movement)', 1.5],
+    ['Heisman shuffle', 2.5], ['Plyo jacks', 3], ['Squat jack pulses', 3.5],
+    ['Bear crawl shuffle (cardio pace)', 4], ['Mountain climber twist', 3],
+    ['Burpee step-back (low impact)', 3.5], ['Jumping jack variations (cross)', 2],
+    ['Fast feet with arm drive', 2], ['High knee pull (standing)', 2],
+  ],
+  FULLBODY: [
+    ['Bear crawl', 3.5], ['Crab walk', 3], ['Inchworms', 3], ['Bodyweight thrusters (squat to reach)', 4],
+    ['Turkish get-up (no weight)', 5.5], ['Plank jacks', 4], ['Squat to press (reach overhead)', 3.5],
+    ['Man makers (no weight)', 5.5], ['Devil press (no weight)', 5.5],
+    ['World\u2019s greatest stretch', 2], ['Cat-cow stretch', 1.5], ['Downward dog', 1.5],
+    ['Child\u2019s pose', 1.5], ['Cobra stretch', 1.5], ['Pigeon pose', 2], ['Neck stretch', 1.5],
+    ['Butterfly stretch', 1.5], ['Standing forward fold', 1.5], ['Warrior pose', 2],
+    ['Tree pose', 2], ['Bridge pose', 2], ['Foam rolling (self-massage)', 1.5],
+    ['Seated forward fold', 1.5], ['Sun salutation', 2.5], ['Bear crawl hold', 3.5],
+    ['Inchworm to push-up', 3.5], ['Crab walk hold', 3], ['Crab kicks', 3.5],
+    ['Plank to squat jump', 4.5], ['Burpee to bear crawl', 5], ['Get-up sit (no weight)', 3.5],
+    ['Standing toe touch to reach', 2], ['Spiderman crawl', 4], ['Bear crawl to downward dog', 4],
+    ['Inchworm walkout to plank', 3.5], ['Squat to overhead reach', 2.5], ['Lunge to twist', 3],
+    ['Standing side bend flow', 1.5], ['Sun salutation flow (extended)', 3], ['Vinyasa flow (basic)', 3],
+    ['Crescent lunge', 2.5], ['Triangle pose', 2], ['Camel pose', 2],
+    ['Locust pose', 2.5], ['Fish pose', 1.5], ['Reclining twist', 1.5],
+    ['Standing quad stretch flow', 1.5], ['Wide-leg forward fold', 1.5], ['Gate pose', 1.5],
+    ['Low lunge with backbend', 2], ['Half-moon pose (balance)', 3], ['Eagle pose (balance)', 3],
+    ['Standing split (balance)', 3.5], ['Crow pose progression', 5.5],
+  ],
+};
+
+// Flattened [name, diff] list for difficulty lookups, and a name->skill map
+// for coloring/icon-tagging suggestions by body part.
+const EXERCISE_LIBRARY = [];
+const EXERCISE_LIBRARY_SKILL_MAP = {};
+Object.entries(EXERCISE_LIBRARY_BY_SKILL).forEach(([skill, list]) => {
+  list.forEach(([name, diff]) => {
+    EXERCISE_LIBRARY.push([name, diff]);
+    EXERCISE_LIBRARY_SKILL_MAP[name] = skill;
+  });
+});
+
+function lookupExerciseLibrary(name) {
+  const n = name.trim().toLowerCase();
+  if (!n) return null;
+  const exact = EXERCISE_LIBRARY.find(([libName]) => libName.toLowerCase() === n);
+  return exact ? exact[1] : null;
+}
+
+function exerciseLibrarySuggestions(query, limit, scopeToSkill) {
+  limit = limit || 6;
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  let pool = EXERCISE_LIBRARY;
+  if (scopeToSkill) {
+    pool = EXERCISE_LIBRARY_BY_SKILL[scopeToSkill] || [];
+  }
+  return pool
+    .filter(([name]) => name.toLowerCase().includes(q))
+    .sort((a, b) => a[0].toLowerCase().indexOf(q) - b[0].toLowerCase().indexOf(q))
+    .slice(0, limit);
+}
+
+// Estimates a difficulty score (1.5-6, matching the real library's range)
+// for a custom, user-typed exercise name using keyword pattern matching.
+// Not a lookup table of every possible exercise — a set of modifiers that
+// nudge a baseline score up or down based on words that tend to signal
+// harder or easier variations, calibrated against the existing library.
+function estimateCustomDifficulty(name) {
+  const n = name.toLowerCase();
+  let score = 3; // baseline: average difficulty, matches most "standard" moves
+
+  const hardWords = [
+    ['diamond', 1.8], ['decline', 1], ['explosive', 2], ['clap', 2.5],
+    ['single-leg', 1.5], ['single arm', 1.5], ['one-arm', 2],
+    ['one arm', 2], ['one-leg', 1.5], ['pistol', 2], ['archer', 1.8],
+    ['jumping', 1], ['jump', 1.2], ['plyo', 1.5], ['handstand', 2.5],
+    ['burpee', 1.5], ['weighted', 1], ['negative', 0.8], ['slow', 0.5],
+    ['pause', 0.4], ['elevated', 0.6], ['advanced', 1.2], ['deficit', 1],
+  ];
+  const easyWords = [
+    ['incline', -1], ['wall', -1.3], ['assisted', -1.5], ['knee', -1.2],
+    ['modified', -1], ['beginner', -1.5], ['seated', -0.8], ['supported', -1],
+    ['half', -0.6], ['easy', -1.5], ['light', -0.8], ['gentle', -1.2],
+    ['stretch', -1.5], ['hold', -0.3], ['static', -0.3],
+  ];
+
+  for (const [word, mod] of hardWords) if (n.includes(word)) score += mod;
+  for (const [word, mod] of easyWords) if (n.includes(word)) score += mod;
+
+  // clamp to the library's real range and snap to the nearest 0.5 step
+  score = Math.max(1.5, Math.min(6, score));
+  return Math.round(score * 2) / 2;
+}
+
+// ===================== DATA =====================
+const WORKOUT_ROTATIONS = [
+  // ROTATION A — original
+  [
+    { day:1, skill:'CHEST', sub:'Push Focus', exercises:[
+      {name:'Standard push-ups', sets:3, repsLabel:'12-15', reps:12, unit:'rep', diff:3},
+      {name:'Incline push-ups', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2},
+      {name:'Diamond push-ups', sets:3, repsLabel:'8-10', reps:8, unit:'rep', diff:5},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:2, skill:'BACK', sub:'Pull Focus', exercises:[
+      {name:'Inverted rows', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4},
+      {name:'Superman holds', sets:3, repsLabel:'20-30 sec', reps:25, unit:'sec', diff:2},
+      {name:'Reverse snow angels', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:3, skill:'ABS', sub:'Core Focus', exercises:[
+      {name:'Plank', sets:3, repsLabel:'30-45 sec', reps:35, unit:'sec', diff:2.5},
+      {name:'Bicycle crunches', sets:3, repsLabel:'20 (10/side)', reps:20, unit:'rep', diff:2},
+      {name:'Leg raises', sets:3, repsLabel:'12-15', reps:12, unit:'rep', diff:3},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:4, skill:'SHOULDERS', sub:'Press & Stability', exercises:[
+      {name:'Pike push-ups', sets:3, repsLabel:'8-10', reps:9, unit:'rep', diff:5},
+      {name:'Lateral arm circles', sets:3, repsLabel:'20 (10 each dir)', reps:20, unit:'rep', diff:1.5},
+      {name:'Wall handstand hold', sets:3, repsLabel:'15-20 sec', reps:18, unit:'sec', diff:6},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:5, skill:'CHEST', skill2:'BACK', sub:'Push-Pull Combo', exercises:[
+      {name:'Wide-grip push-ups', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3.5, skill:'CHEST'},
+      {name:'Inverted rows', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4, skill:'BACK'},
+      {name:'Push-up pyramid', sets:1, repsLabel:'1-2-3-4-3-2-1', reps:16, unit:'rep', diff:4, skill:'CHEST'},
+    ], rest:'Rest 30 sec between sets' },
+    { day:6, skill:'ABS', sub:'Rotation & Stability', exercises:[
+      {name:'Russian twists', sets:3, repsLabel:'20 (10/side)', reps:20, unit:'rep', diff:2},
+      {name:'Side plank', sets:3, repsLabel:'20-30 sec/side', reps:25, unit:'sec', diff:3},
+      {name:'Hollow body hold', sets:3, repsLabel:'20-30 sec', reps:25, unit:'sec', diff:4},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:7, skill:'REST', sub:'Mobility', exercises:[
+      {name:'Light stretching or walk', sets:1, repsLabel:'No counts needed', reps:1, unit:'rep', diff:0},
+    ], rest:'Recovery day' },
+  ],
+  // ROTATION B
+  [
+    { day:1, skill:'CHEST', sub:'Tempo Focus', exercises:[
+      {name:'Slow-tempo push-ups', sets:3, repsLabel:'10 (3s down)', reps:10, unit:'rep', diff:3.5},
+      {name:'Staggered-hand push-ups', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3},
+      {name:'Archer push-ups', sets:3, repsLabel:'6/side', reps:6, unit:'rep', diff:5.5},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:2, skill:'BACK', sub:'Isometric Focus', exercises:[
+      {name:'Towel rows (door anchor)', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4},
+      {name:'Prone Y-raises', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:2.5},
+      {name:'Bird dogs', sets:3, repsLabel:'10/side', reps:10, unit:'rep', diff:2},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:3, skill:'ABS', sub:'Anti-Rotation Focus', exercises:[
+      {name:'Plank shoulder taps', sets:3, repsLabel:'20 (10/side)', reps:20, unit:'rep', diff:3},
+      {name:'V-ups', sets:3, repsLabel:'12-15', reps:12, unit:'rep', diff:3.5},
+      {name:'Dead bug', sets:3, repsLabel:'12 (6/side)', reps:12, unit:'rep', diff:2},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:4, skill:'SHOULDERS', sub:'Endurance Focus', exercises:[
+      {name:'Y-T-W raises (no weight)', sets:3, repsLabel:'12 each', reps:12, unit:'rep', diff:2.5},
+      {name:'Wall walks', sets:3, repsLabel:'5', reps:5, unit:'rep', diff:5},
+      {name:'Plank-to-downward-dog', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:3},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:5, skill:'CHEST', skill2:'BACK', sub:'Push-Pull Combo', exercises:[
+      {name:'Staggered-hand push-ups', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3, skill:'CHEST'},
+      {name:'Towel rows', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4, skill:'BACK'},
+      {name:'Archer push-ups', sets:1, repsLabel:'6/side', reps:6, unit:'rep', diff:5.5, skill:'CHEST'},
+    ], rest:'Rest 30 sec between sets' },
+    { day:6, skill:'ABS', sub:'Flow Focus', exercises:[
+      {name:'V-ups', sets:3, repsLabel:'12-15', reps:12, unit:'rep', diff:3.5},
+      {name:'Plank shoulder taps', sets:3, repsLabel:'20 (10/side)', reps:20, unit:'rep', diff:3},
+      {name:'Hollow rocks', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:4},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:7, skill:'REST', sub:'Mobility', exercises:[
+      {name:'Light stretching or walk', sets:1, repsLabel:'No counts needed', reps:1, unit:'rep', diff:0},
+    ], rest:'Recovery day' },
+  ],
+  // ROTATION C
+  [
+    { day:1, skill:'CHEST', sub:'Width Focus', exercises:[
+      {name:'Wide push-ups', sets:3, repsLabel:'12-14', reps:12, unit:'rep', diff:3},
+      {name:'Decline push-ups (feet elevated)', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4},
+      {name:'Push-up hold + pulse', sets:3, repsLabel:'15 pulses', reps:15, unit:'rep', diff:4},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:2, skill:'BACK', sub:'Extension Focus', exercises:[
+      {name:'Supermans (arms extended)', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2.5},
+      {name:'Renegade rows (no weight, plank shift)', sets:3, repsLabel:'12 (6/side)', reps:12, unit:'rep', diff:4.5},
+      {name:'Scapular pull-ups (or shrugs)', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:3},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:3, skill:'ABS', sub:'Flexion Focus', exercises:[
+      {name:'Crunches', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:2},
+      {name:'Reverse crunches', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2.5},
+      {name:'Toe touches', sets:3, repsLabel:'15-20', reps:15, unit:'rep', diff:2},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:4, skill:'SHOULDERS', sub:'Strength Focus', exercises:[
+      {name:'Pike push-ups (elevated feet)', sets:3, repsLabel:'8-10', reps:8, unit:'rep', diff:5.5},
+      {name:'Front raises (no weight, slow)', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:1.5},
+      {name:'Crow pose hold', sets:3, repsLabel:'15-20 sec', reps:15, unit:'sec', diff:5.5},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:5, skill:'CHEST', skill2:'BACK', sub:'Push-Pull Combo', exercises:[
+      {name:'Wide push-ups', sets:3, repsLabel:'12-14', reps:12, unit:'rep', diff:3, skill:'CHEST'},
+      {name:'Renegade rows', sets:3, repsLabel:'12 (6/side)', reps:12, unit:'rep', diff:4.5, skill:'BACK'},
+      {name:'Decline push-ups', sets:1, repsLabel:'10-12', reps:10, unit:'rep', diff:4, skill:'CHEST'},
+    ], rest:'Rest 30 sec between sets' },
+    { day:6, skill:'ABS', sub:'Pulse Focus', exercises:[
+      {name:'Crunches', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:2},
+      {name:'Toe touches', sets:3, repsLabel:'15-20', reps:15, unit:'rep', diff:2},
+      {name:'Reverse crunches', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2.5},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:7, skill:'REST', sub:'Mobility', exercises:[
+      {name:'Light stretching or walk', sets:1, repsLabel:'No counts needed', reps:1, unit:'rep', diff:0},
+    ], rest:'Recovery day' },
+  ],
+  // ROTATION D
+  [
+    { day:1, skill:'CHEST', sub:'Density Focus', exercises:[
+      {name:'EMOM push-ups (5/min)', sets:3, repsLabel:'5/min x 5', reps:25, unit:'rep', diff:3},
+      {name:'Spiderman push-ups', sets:3, repsLabel:'10 (5/side)', reps:10, unit:'rep', diff:4.5},
+      {name:'Clap push-ups (or explosive)', sets:3, repsLabel:'6-8', reps:6, unit:'rep', diff:6},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:2, skill:'BACK', sub:'Control Focus', exercises:[
+      {name:'Inverted row negatives (slow lower)', sets:3, repsLabel:'8-10', reps:8, unit:'rep', diff:4.5},
+      {name:'Prone W-raises', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:2.5},
+      {name:'Good mornings (bodyweight hinge)', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:2},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:3, skill:'ABS', sub:'Endurance Focus', exercises:[
+      {name:'Plank to push-up', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Flutter kicks', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2.5},
+      {name:'Sit-ups', sets:3, repsLabel:'15-20', reps:15, unit:'rep', diff:2.5},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:4, skill:'SHOULDERS', sub:'Power Focus', exercises:[
+      {name:'Explosive pike push-ups', sets:3, repsLabel:'6-8', reps:6, unit:'rep', diff:6},
+      {name:'Lateral raises (slow, no weight)', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:1.5},
+      {name:'Handstand kick-ups (wall)', sets:3, repsLabel:'5', reps:5, unit:'rep', diff:5},
+    ], rest:'Rest 30-45 sec between sets' },
+    { day:5, skill:'CHEST', skill2:'BACK', sub:'Push-Pull Combo', exercises:[
+      {name:'Spiderman push-ups', sets:3, repsLabel:'10 (5/side)', reps:10, unit:'rep', diff:4.5, skill:'CHEST'},
+      {name:'Inverted row negatives', sets:3, repsLabel:'8-10', reps:8, unit:'rep', diff:4.5, skill:'BACK'},
+      {name:'EMOM push-ups', sets:1, repsLabel:'5/min x 5', reps:25, unit:'rep', diff:3, skill:'CHEST'},
+    ], rest:'Rest 30 sec between sets' },
+    { day:6, skill:'ABS', sub:'Mixed Focus', exercises:[
+      {name:'Sit-ups', sets:3, repsLabel:'15-20', reps:15, unit:'rep', diff:2.5},
+      {name:'Plank to push-up', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Flutter kicks', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2.5},
+    ], rest:'Rest 20-30 sec between sets' },
+    { day:7, skill:'REST', sub:'Mobility', exercises:[
+      {name:'Light stretching or walk', sets:1, repsLabel:'No counts needed', reps:1, unit:'rep', diff:0},
+    ], rest:'Recovery day' },
+  ],
+];
+
+
+const SIDE_QUEST_ROTATIONS = [
+  // ROTATION A — original
+  {
+    LEGS: { label:'Legs', exercises:[
+      {name:'Bodyweight squats', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2.5},
+      {name:'Lunges', sets:3, repsLabel:'12 (6/side)', reps:12, unit:'rep', diff:3},
+      {name:'Calf raises', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:1.5},
+      {name:'Glute bridges', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2},
+      {name:'Wall sit', sets:3, repsLabel:'30-45 sec', reps:30, unit:'sec', diff:3},
+      {name:'Jump squats', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4.5},
+    ]},
+    ARMS: { label:'Arms', exercises:[
+      {name:'Tricep dips (chair/bench)', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:3.5},
+      {name:'Close-grip push-ups', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Towel/door bicep curls', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:2.5},
+      {name:'Plank-to-push-up', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Wall handstand hold', sets:3, repsLabel:'15-20 sec', reps:18, unit:'sec', diff:6},
+    ]},
+    CARDIO: { label:'Cardio', exercises:[
+      {name:'Jumping jacks', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:1.5},
+      {name:'High knees', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2},
+      {name:'Burpees', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:5},
+      {name:'Mountain climbers', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2.5},
+      {name:'Jump rope (or imaginary)', sets:3, repsLabel:'60 sec', reps:60, unit:'sec', diff:2},
+    ]},
+    FULLBODY: { label:'Full Body / Other', exercises:[
+      {name:'Burpees', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:5},
+      {name:'Bear crawl', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3.5},
+      {name:'Bodyweight thrusters', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:4},
+      {name:'Inchworms', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:3},
+      {name:"Turkish get-up (no weight)", sets:3, repsLabel:'6/side', reps:6, unit:'rep', diff:5.5},
+    ]},
+  },
+  // ROTATION B
+  {
+    LEGS: { label:'Legs', exercises:[
+      {name:'Sumo squats', sets:3, repsLabel:'15', reps:15, unit:'rep', diff:2.5},
+      {name:'Reverse lunges', sets:3, repsLabel:'12 (6/side)', reps:12, unit:'rep', diff:3},
+      {name:'Single-leg calf raises', sets:3, repsLabel:'12/side', reps:12, unit:'rep', diff:2.5},
+      {name:'Frog pumps', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:2},
+      {name:'Curtsy lunges', sets:3, repsLabel:'10/side', reps:10, unit:'rep', diff:3.5},
+      {name:'Bulgarian split squat (no weight)', sets:3, repsLabel:'8/side', reps:8, unit:'rep', diff:4.5},
+    ]},
+    ARMS: { label:'Arms', exercises:[
+      {name:'Diamond push-ups (tricep focus)', sets:3, repsLabel:'8-10', reps:8, unit:'rep', diff:5},
+      {name:'Door frame curls (isometric)', sets:3, repsLabel:'20-30 sec', reps:25, unit:'sec', diff:2.5},
+      {name:'Tricep extensions (chair, slow)', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:3.5},
+      {name:'Pseudo planche lean', sets:3, repsLabel:'15-20 sec', reps:18, unit:'sec', diff:5},
+      {name:'Bench dips (feet elevated)', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4.5},
+    ]},
+    CARDIO: { label:'Cardio', exercises:[
+      {name:'Skater jumps', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2.5},
+      {name:'Butt kicks', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:1.5},
+      {name:'Star jumps', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3},
+      {name:'Shadow boxing', sets:3, repsLabel:'45 sec', reps:45, unit:'sec', diff:2},
+      {name:'Squat jacks', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3},
+    ]},
+    FULLBODY: { label:'Full Body / Other', exercises:[
+      {name:'Mountain climber to push-up', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4.5},
+      {name:'Crab walk', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3},
+      {name:'Squat-to-press (no weight)', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3.5},
+      {name:'World\u2019s greatest stretch flow', sets:3, repsLabel:'8/side', reps:8, unit:'rep', diff:2},
+      {name:'Plank jacks', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:4},
+    ]},
+  },
+  // ROTATION C
+  {
+    LEGS: { label:'Legs', exercises:[
+      {name:'Pistol squat progression (assisted)', sets:3, repsLabel:'5/side', reps:5, unit:'rep', diff:5.5},
+      {name:'Lateral lunges', sets:3, repsLabel:'10/side', reps:10, unit:'rep', diff:3},
+      {name:'Wall sit with calf raise', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3.5},
+      {name:'Step-ups (chair/stairs)', sets:3, repsLabel:'12/side', reps:12, unit:'rep', diff:3},
+      {name:'Donkey kicks', sets:3, repsLabel:'15/side', reps:15, unit:'rep', diff:2},
+      {name:'Squat hold pulse', sets:3, repsLabel:'20 sec', reps:20, unit:'sec', diff:4},
+    ]},
+    ARMS: { label:'Arms', exercises:[
+      {name:'Wide-grip diamond push-ups', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4.5},
+      {name:'Isometric curl hold (towel)', sets:3, repsLabel:'20 sec', reps:20, unit:'sec', diff:2.5},
+      {name:'Tricep push-ups (elbows in)', sets:3, repsLabel:'10-12', reps:10, unit:'rep', diff:4},
+      {name:'Wall push-up to plank walk', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:3.5},
+      {name:'Reverse plank dips', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:5},
+    ]},
+    CARDIO: { label:'Cardio', exercises:[
+      {name:'Tuck jumps', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Side-to-side hops', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2},
+      {name:'Burpee to broad jump', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:5.5},
+      {name:'Fast feet (in place)', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:1.5},
+      {name:'Sprawl-outs', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:4},
+    ]},
+    FULLBODY: { label:'Full Body / Other', exercises:[
+      {name:'Bear crawl to push-up', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:4.5},
+      {name:'Inchworm to shoulder tap', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:3.5},
+      {name:'Lateral bear crawl', sets:3, repsLabel:'20 sec/side', reps:20, unit:'sec', diff:3},
+      {name:'Squat-to-reach', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:2.5},
+      {name:'Burpee broad jump combo', sets:3, repsLabel:'6', reps:6, unit:'rep', diff:6},
+    ]},
+  },
+  // ROTATION D
+  {
+    LEGS: { label:'Legs', exercises:[
+      {name:'Cossack squats', sets:3, repsLabel:'8/side', reps:8, unit:'rep', diff:4},
+      {name:'Walking lunges', sets:3, repsLabel:'16 (8/side)', reps:16, unit:'rep', diff:3},
+      {name:'Single-leg glute bridge', sets:3, repsLabel:'10/side', reps:10, unit:'rep', diff:3.5},
+      {name:'Squat pulses', sets:3, repsLabel:'20', reps:20, unit:'rep', diff:2.5},
+      {name:'Standing calf raise hold', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2},
+      {name:'Jump lunges', sets:3, repsLabel:'10 (5/side)', reps:10, unit:'rep', diff:5},
+    ]},
+    ARMS: { label:'Arms', exercises:[
+      {name:'Decline diamond push-ups', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:5.5},
+      {name:'Chair tricep dips (slow)', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3.5},
+      {name:'Resisted curl (towel + foot)', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:3},
+      {name:'Push-up to shoulder tap', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Handstand hold (wall, tricep focus)', sets:3, repsLabel:'15-20 sec', reps:18, unit:'sec', diff:6},
+    ]},
+    CARDIO: { label:'Cardio', exercises:[
+      {name:'High knee sprints (in place)', sets:3, repsLabel:'20 sec', reps:20, unit:'sec', diff:3},
+      {name:'Jump rope double-time', sets:3, repsLabel:'45 sec', reps:45, unit:'sec', diff:2.5},
+      {name:'Burpees', sets:3, repsLabel:'12', reps:12, unit:'rep', diff:5},
+      {name:'Cross-body mountain climbers', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:2.5},
+      {name:'Speed skaters', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3},
+    ]},
+    FULLBODY: { label:'Full Body / Other', exercises:[
+      {name:'Turkish get-up (no weight)', sets:3, repsLabel:'5/side', reps:5, unit:'rep', diff:5.5},
+      {name:'Plank-to-squat jump', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4.5},
+      {name:'Bear crawl hold', sets:3, repsLabel:'30 sec', reps:30, unit:'sec', diff:3},
+      {name:'Thruster to lunge', sets:3, repsLabel:'10', reps:10, unit:'rep', diff:4},
+      {name:'Inchworm push-up combo', sets:3, repsLabel:'8', reps:8, unit:'rep', diff:4},
+    ]},
+  },
+];
+
+const SKILL_COLOR = {
+  CHEST:'#c4451c', BACK:'#3a7d8c', ABS:'#8a8f98', SHOULDERS:'#b08c2a', REST:'#4a4d52',
+  LEGS:'#5a8c3a', ARMS:'#9a4a8c', CARDIO:'#c43a5a', FULLBODY:'#3a5ac4',
+};
+function skillIconSvg(key, color, size) {
+  size = size || 16;
+  const s = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align:-3px;flex-shrink:0;"`;
+  const icons = {
+    // CHEST — pectoral / torso outline
+    CHEST: `<svg ${s}><path d="M12 4c-1.5 0-2.8.8-3.5 2-1.8-.5-3.5.5-4 2.3-.6 2 .2 5 1.5 7.7 1 2 2.5 3.5 3.5 4 .8.4 1.6 0 2.5 0s1.7.4 2.5 0c1-.5 2.5-2 3.5-4 1.3-2.7 2.1-5.7 1.5-7.7-.5-1.8-2.2-2.8-4-2.3-.7-1.2-2-2-3.5-2z" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 6.5v13" stroke="${color}" stroke-width="1.3" opacity="0.6"/></svg>`,
+    // BACK — trapezius/lat shape from behind
+    BACK: `<svg ${s}><path d="M12 3c-1.3 1.4-2 2.8-2 4.2 0 .8-1.8 1.3-3 2.3-1.6 1.3-2.5 3-2.5 5 0 3.5 2 6.5 3 7.5h9c1-1 3-4 3-7.5 0-2-.9-3.7-2.5-5-1.2-1-3-1.5-3-2.3 0-1.4-.7-2.8-2-4.2z" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 7v15M8 12l4-1.5L16 12" stroke="${color}" stroke-width="1.2" opacity="0.6"/></svg>`,
+    // ABS — segmented six-pack rectangle
+    ABS: `<svg ${s}><rect x="8" y="4" width="8" height="16" rx="2.5" stroke="${color}" stroke-width="1.6"/><path d="M8 9.5h8M8 14h8M12 4v16" stroke="${color}" stroke-width="1.2" opacity="0.6"/></svg>`,
+    // SHOULDERS — deltoid cap curves
+    SHOULDERS: `<svg ${s}><path d="M4 14c0-3 2-5.5 4.5-5.5S12 9.5 12 11" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M20 14c0-3-2-5.5-4.5-5.5S12 9.5 12 11" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M4 14v3M20 14v3M12 11v9" stroke="${color}" stroke-width="1.4" opacity="0.6" stroke-linecap="round"/></svg>`,
+    // LEGS — two legs from hip
+    LEGS: `<svg ${s}><path d="M9 3h6l.5 7-1.5 11h-2l-1-9-1 9H8L6.5 10z" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+    // ARMS — flexed bicep curve
+    ARMS: `<svg ${s}><path d="M6 19c0-3 .5-6 2.5-8 1.3-1.3 2-3 2-5" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/><path d="M6 19c2 1.5 5 1.8 7 0 1.5-1.3 1.5-3.5.5-5-1.2-1.8-3.5-2-5-1" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10.3" cy="6" r="1.6" stroke="${color}" stroke-width="1.4"/></svg>`,
+    // CARDIO — heartbeat pulse line
+    CARDIO: `<svg ${s}><path d="M3 12h4l2-5 3 10 2-7 1.5 2H21" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    // FULLBODY — simple standing figure
+    FULLBODY: `<svg ${s}><circle cx="12" cy="4.5" r="2.3" stroke="${color}" stroke-width="1.6"/><path d="M12 7v8M7 10l5-1.5L17 10M8 21l4-6 4 6" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  };
+  return icons[key] || '';
+}
+
+// Profile picker icons — same minimal line-art style as skill icons
+// Side Quests section icon — a small branching path / compass-rose hybrid,
+// suggesting an optional route off the main track. Custom SVG, no emoji.
+function sideQuestIconSvg(color, size) {
+  size = size || 16;
+  color = color || '#d8a23a';
+  const s = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align:-3px;flex-shrink:0;"`;
+  return `<svg ${s}>
+    <path d="M4 18 L9 13 L13 16 L20 6" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.5,2.5"/>
+    <circle cx="4" cy="18" r="1.6" fill="${color}"/>
+    <path d="M19 3l3 3-3 3-3-3z" fill="${color}22" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// Forge wordmark logo icon — stylized anvil/flame hybrid for the header
+// Custom FORGE wordmark — angular, slab-cut letterforms instead of a system
+// font, with a subtle ember-glow filter along the strokes.
+function forgeWordmarkSvg(color, height) {
+  height = height || 34;
+  color = color || '#e8e6e1';
+  const glow = '#c4451c';
+  // Each letter built from straight angular strokes, slight notched cuts at
+  // corners for an industrial/cut-metal feel rather than a rounded font.
+  return `<svg height="${height}" viewBox="0 0 210 50" style="display:block;" preserveAspectRatio="xMinYMid meet">
+    <defs>
+      <filter id="emberGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="1.6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <g filter="url(#emberGlow)">
+      <!-- F -->
+      <path d="M4 4 L4 46 L14 46 L14 28 L30 28 L30 19 L14 19 L14 13 L34 13 L34 4 Z" fill="${color}" stroke="${glow}" stroke-width="0.6"/>
+      <!-- O -->
+      <path d="M42 4 L70 4 L70 13 L52 13 L52 37 L70 37 L70 46 L42 46 Z M52 13 L62 13 L62 37 L52 37 Z" fill="${color}" stroke="${glow}" stroke-width="0.6" fill-rule="evenodd"/>
+      <path d="M62 13 L70 13 L70 37 L62 37 Z" fill="${color}" stroke="${glow}" stroke-width="0.6"/>
+      <!-- R -->
+      <path d="M80 4 L80 46 L90 46 L90 28 L96 28 L106 46 L117 46 L106 27 C112 25 114 20 114 16 C114 8 108 4 99 4 Z M90 13 L98 13 C102 13 104 14.5 104 17.5 C104 20.5 102 22 98 22 L90 22 Z" fill="${color}" stroke="${glow}" stroke-width="0.6" fill-rule="evenodd"/>
+      <!-- G -->
+      <path d="M124 25 C124 11 132 3 146 3 C153 3 158 5.5 161 9 L154 16 C152 13.5 149.5 12 146 12 C139 12 135 17 135 25 C135 33 139 38 147 38 C150 38 152.5 37 154 36 L154 30 L146 30 L146 22 L163 22 L163 41 C159 44.5 153 47 146 47 C132 47 124 39 124 25 Z" fill="${color}" stroke="${glow}" stroke-width="0.6"/>
+      <!-- E -->
+      <path d="M173 4 L173 46 L204 46 L204 37 L183 37 L183 29 L200 29 L200 20 L183 20 L183 13 L204 13 L204 4 Z" fill="${color}" stroke="${glow}" stroke-width="0.6"/>
+      <!-- small notch accents at a few corners for the cut-metal feel -->
+      <path d="M4 4 L8 4 L4 8 Z" fill="${glow}" opacity="0.8"/>
+      <path d="M204 46 L200 46 L204 42 Z" fill="${glow}" opacity="0.8"/>
+    </g>
+  </svg>`;
+}
+
+function forgeLogoSvg(color, size) {
+  size = size || 28;
+  color = color || '#c4451c';
+  const s = `width="${size}" height="${size}" viewBox="0 0 28 28" fill="none" style="vertical-align:-7px;flex-shrink:0;"`;
+  return `<svg ${s}>
+    <path d="M14 3c1.2 3.4-2.6 4.4-2.6 8.4a3.4 3.4 0 006.8 0c0-1.6-1-2.2-1-2.2 1.6 1 3.2 3.2 3.2 6A6 6 0 0114 21a6 6 0 01-6-6c0-4.4 3.4-6.6 3.4-7.8 0 0 1.1.5 2.2 1.6C13 6.6 13.4 5 14 3z"
+      fill="${color}22" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M6 24h16" stroke="${color}" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  </svg>`;
+}
+
+function profileIconSvg(key, color, size) {
+  size = size || 20;
+  const s = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align:-3px;flex-shrink:0;"`;
+  const icons = {
+    FLAME: `<svg ${s}><path d="M12 2c1 3-3 4-3 8a3 3 0 006 0c0-1.5-1-2-1-2 1.5 1 3 3 3 5.5A5 5 0 0112 18a5 5 0 01-5-5c0-4 3-6 3-7 0 0 1 .5 2 1.5C12.5 6 11.5 4 12 2z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    BOLT: `<svg ${s}><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    SKULL: `<svg ${s}><path d="M12 3a7 7 0 00-7 7c0 2.5 1.2 4 2.5 5.2V18h3v-1h3v1h3v-2.8C17.8 14 19 12.5 19 10a7 7 0 00-7-7z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.5" cy="10" r="1.3" stroke="${color}" stroke-width="1.3"/><circle cx="14.5" cy="10" r="1.3" stroke="${color}" stroke-width="1.3"/><path d="M12 12v2" stroke="${color}" stroke-width="1.3"/><path d="M9 20l1-2h4l1 2" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+    CROWN: `<svg ${s}><path d="M3 9l3 8h12l3-8-5 3-3-5-3 5-5-3z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    WOLF: `<svg ${s}><path d="M5 17V9l3-4 1.5 3h5L16 5l3 4v8" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 17l2-2M19 17l-2-2" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/><circle cx="9.5" cy="11" r="1" fill="${color}"/><circle cx="14.5" cy="11" r="1" fill="${color}"/></svg>`,
+    EAGLE: `<svg ${s}><path d="M12 4l2 3h6l-5 3 3 6-6-4-6 4 3-6-5-3h6z" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+    DRAGON: `<svg ${s}><path d="M3 16c2-1 3-3 5-3s2 2 4 2 2-3 4-3 4 1 5 3" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 15l2-3-3 1M6 13l-2-3 3 1" stroke="${color}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    STAR: `<svg ${s}><path d="M12 3l2.5 6.5H21l-5.5 4 2 6.5L12 16l-5.5 4 2-6.5L3 9.5h6.5z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    GEM: `<svg ${s}><path d="M6 3h12l4 6-10 12L2 9z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 9h20M9 3l3 18M15 3l-3 18" stroke="${color}" stroke-width="1.1" opacity="0.6"/></svg>`,
+    TARGET: `<svg ${s}><circle cx="12" cy="12" r="8.5" stroke="${color}" stroke-width="1.5"/><circle cx="12" cy="12" r="5" stroke="${color}" stroke-width="1.4"/><circle cx="12" cy="12" r="1.6" fill="${color}"/></svg>`,
+    MOUNTAIN: `<svg ${s}><path d="M3 18l6-10 3 4 2-3 7 9z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="6" r="1.4" stroke="${color}" stroke-width="1.3"/></svg>`,
+    SKULLCROSS: `<svg ${s}><circle cx="12" cy="9" r="5" stroke="${color}" stroke-width="1.5"/><circle cx="10" cy="9" r="1.1" fill="${color}"/><circle cx="14" cy="9" r="1.1" fill="${color}"/><path d="M4 19l16-6M4 13l16 6" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  };
+  return icons[key] || '';
+}
+
+// ===================== ACHIEVEMENTS STAR MAP =====================
+// A pure night-sky constellation chart, the way real star charts work —
+// each skill's stars connect in a path that loosely traces that body part's
+// shape, the way Orion traces a hunter. No icons, no badges, no cape object.
+// This is meant to feel like a different visual world from the rest of the
+// app for a moment, not like another themed panel.
+// Each constellation is defined in a small local 60x60 coordinate space,
+// then tiled into a clean 4-column x 2-row grid — compact, no longer
+// sprawling into a full figure.
+const CONSTELLATIONS = {
+  CHEST: {
+    // shield/apple shape: smooth rounded top, bulging at the shoulders,
+    // flat-ish bottom with a slight upward lift at center, no downward point
+    stars: [[30,6],[44,10],[50,24],[42,40],[30,36],[18,40],[10,24],[16,10]],
+    chain: [0,1,2,3,4,5,6,7,0],
+  },
+  BACK: {
+    // wide at the shoulders, flat bottom — no downward point at all
+    stars: [[30,6],[10,18],[8,30],[18,48],[30,48],[42,48],[52,30],[50,18]],
+    chain: [0,1,2,3,4,5,6,7,0],
+  },
+  SHOULDERS: {
+    // two small deltoid arcs as one broken shape
+    stars: [[8,30],[16,20],[26,24],[34,24],[44,20],[52,30]],
+    chain: [0,1,2,null,3,4,5],
+  },
+  ABS: {
+    // segmented core, ladder-like
+    stars: [[20,6],[40,6],[18,22],[42,22],[20,38],[40,38],[22,54],[38,54]],
+    chain: [0,1,null,2,3,null,4,5,null,6,7],
+  },
+  LEGS: {
+    // forked from a hip block down to two feet — order interleaves left/right
+    // so both legs fill in sync rather than one leg completing before the other
+    stars: [[22,6],[38,6],[20,26],[40,26],[14,46],[46,46],[10,58],[50,58]],
+    chain: [0,1,null,0,2,4,6,null,1,3,5,7],
+  },
+  ARMS: {
+    // bicep bulge as a 5-point loop, with the forearm rising as 2 more
+    // points from the top of the loop up toward the fist — matches the
+    // real arms icon's flexed-curve-plus-fist shape
+    stars: [[28,26],[39,34],[35,48],[21,48],[17,34],[30,14],[32,4]],
+    chain: [0,1,2,3,4,0,null,0,5,6],
+  },
+  CARDIO: {
+    // zigzag heartbeat pulse line
+    stars: [[4,30],[16,30],[22,14],[30,46],[38,18],[44,30],[56,30]],
+    chain: [0,1,2,3,4,5,6],
+  },
+  FULLBODY: {
+    // trunk first (head, neck, hip), then each limb branches individually
+    // from its joint — hands from the neck, feet from the hip — alternating
+    // left-right-left-right rather than connecting straight across to its mirror
+    stars: [[30,4],[30,16],[30,30],[18,12],[42,12],[16,52],[44,52]],
+    chain: [0,1,2,null,1,3,null,1,4,null,2,5,null,2,6],
+  },
+};
+const STARS_PER_ZONE_MAX = 9; // ceiling used for lighting math, actual star count varies per constellation
+
+// Uses the same skill colors as the rest of the app, no separate palette —
+// avoids confusion between what a skill's color means here vs everywhere else.
+const CONSTELLATION_AURORA = SKILL_COLOR;
+
+function capeIsMaxed(xpData, sideXp) {
+  const all = { ...xpData, ...sideXp };
+  return Object.values(all).every(xp => getLevel(xp) >= 99);
+}
+
+function renderConstellationMap(xpData, sideXp) {
+  const allXp = { ...xpData, ...sideXp };
+  const maxed = capeIsMaxed(xpData, sideXp);
+
+  // 4 columns x 2 rows grid, each cell 70x70
+  const CELL = 70;
+  const COLS = 4;
+  const gridOrder = ['CHEST','BACK','SHOULDERS','ABS','LEGS','ARMS','CARDIO','FULLBODY'];
+  const W = CELL * COLS;
+  const H = CELL * 2;
+
+  let svg = `<svg width="100%" height="auto" viewBox="0 0 ${W} ${H}" style="display:block;max-width:320px;">
+    <defs>
+      <radialGradient id="skyGrad" cx="50%" cy="30%" r="95%">
+        <stop offset="0%" stop-color="${maxed ? '#181206' : '#10111c'}" />
+        <stop offset="100%" stop-color="${maxed ? '#0c0904' : '#050509'}" />
+      </radialGradient>
+      <radialGradient id="nebA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e860b0" stop-opacity="0.12" /><stop offset="100%" stop-color="#e860b0" stop-opacity="0" /></radialGradient>
+      <radialGradient id="nebB" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#3fd9d0" stop-opacity="0.11" /><stop offset="100%" stop-color="#3fd9d0" stop-opacity="0" /></radialGradient>
+    </defs>
+    <rect x="0" y="0" width="${W}" height="${H}" fill="url(#skyGrad)" />`;
+
+  svg += `<ellipse cx="${W*0.25}" cy="${H*0.3}" rx="${W*0.3}" ry="${H*0.5}" fill="url(#nebA)" />`;
+  svg += `<ellipse cx="${W*0.75}" cy="${H*0.7}" rx="${W*0.3}" ry="${H*0.5}" fill="url(#nebB)" />`;
+
+  // sparse scattered background micro-stars, scaled to the smaller canvas
+  const bgSeed = [5,8,18,15,32,6,48,18,62,9,8,32,25,38,40,30,55,40,70,35,12,55,28,58,
+    42,50,58,55,72,48,18,62,35,65,50,60,65,68,8,68,22,68];
+  for (let i = 0; i < bgSeed.length; i += 2) {
+    const x = bgSeed[i] * (W / 75);
+    const y = bgSeed[i+1] * (H / 70);
+    svg += `<circle cx="${x.toFixed(1)}" cy="${Math.min(y,H-2).toFixed(1)}" r="0.6" fill="#aab8ff" opacity="0.4" />`;
+  }
+
+  gridOrder.forEach((skill, gridIdx) => {
+    const con = CONSTELLATIONS[skill];
+    const col = gridIdx % COLS;
+    const row = Math.floor(gridIdx / COLS);
+    const offX = col * CELL;
+    const offY = row * CELL;
+
+    const xp = allXp[skill] || 0;
+    const level = getLevel(xp);
+    const total = con.stars.length;
+    const litCount = level > 0 ? Math.min(total, Math.max(1, Math.round((level / 99) * total))) : 0;
+    const color = CONSTELLATION_AURORA[skill];
+
+    // subtle cell divider, very faint, just to suggest grid structure
+    if (col > 0) svg += `<line x1="${offX}" y1="${offY+4}" x2="${offX}" y2="${offY+CELL-4}" stroke="#1c1d2c" stroke-width="0.5" opacity="0.5" />`;
+
+    let segStart = null;
+    con.chain.forEach((idx) => {
+      if (idx === null) { segStart = null; return; }
+      if (segStart !== null) {
+        const bothLit = segStart < litCount && idx < litCount;
+        const [x1,y1] = con.stars[segStart];
+        const [x2,y2] = con.stars[idx];
+        svg += `<line x1="${x1+offX}" y1="${y1+offY}" x2="${x2+offX}" y2="${y2+offY}"
+          stroke="${bothLit ? color : '#6a6d7e'}" stroke-width="${bothLit ? 0.9 : 0.55}" opacity="${bothLit ? 0.6 : 0.4}" />`;
+      }
+      segStart = idx;
+    });
+
+    con.stars.forEach(([x,y], i) => {
+      const isLit = i < litCount;
+      const cx = x + offX, cy = y + offY;
+      if (isLit) {
+        // colored fill with a soft bloom, white outline still visible underneath
+        svg += `<circle cx="${cx}" cy="${cy}" r="2.1" fill="${color}" stroke="#f2f2f5" stroke-width="0.4" class="star-anim" style="filter:drop-shadow(0 0 4px ${color}) drop-shadow(0 0 7px ${color}88);" />`;
+      } else {
+        // unlit: clean white outline only, no fill, so the constellation shape always reads clearly
+        svg += `<circle cx="${cx}" cy="${cy}" r="1.6" fill="none" stroke="#e8e8ee" stroke-width="0.7" opacity="0.65" />`;
+      }
+    });
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ===================== FIREBASE SYNC =====================
+const firebaseConfig = {
+  apiKey: "AIzaSyAtrE-C0JOXbp-rKTxdDwgXXqUbZbmZOUU",
+  authDomain: "forge-d6375.firebaseapp.com",
+  databaseURL: "https://forge-d6375-default-rtdb.firebaseio.com",
+  projectId: "forge-d6375",
+  storageBucket: "forge-d6375.firebasestorage.app",
+  messagingSenderId: "944809437727",
+  appId: "1:944809437727:web:8e64d589bf57fcc757432a"
+};
+let appStarted = false;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Sanity check: confirm Firebase actually connected, since silent
+// initialization failures here would make every sync call fail invisibly.
+if (typeof firebase === 'undefined' || !db) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.createElement('div');
+    el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.right = '0';
+    el.style.zIndex = '99999'; el.style.background = '#3a0a0a'; el.style.color = '#ffb3b3';
+    el.style.fontFamily = 'monospace'; el.style.fontSize = '12px'; el.style.padding = '10px';
+    el.textContent = 'FIREBASE FAILED TO INITIALIZE — check console / network tab';
+    document.body.appendChild(el);
+  });
+}
+
+// Tracks whether this client is actually connected to Firebase's servers,
+// using Firebase's own built-in presence path. Confirms or rules out a
+// connectivity/permissions problem definitively rather than guessing.
+let firebaseConnected = null;
+db.ref('.info/connected').on('value', (snap) => {
+  firebaseConnected = snap.val();
+  if (appStarted) render();
+}, (err) => {
+  console.error('Connection check failed:', err);
+});
+
+// A simple passphrase is the "account" — typing the same phrase on any
+// device loads that person's data. Stored locally once set.
+function getSyncKey() {
+  try { return localStorage.getItem('forge-sync-key') || null; } catch (e) { return null; }
+}
+function setSyncKey(key) {
+  try { localStorage.setItem('forge-sync-key', key); } catch (e) {}
+}
+function sanitizeKey(raw) {
+  // Firebase keys can't contain . $ # [ ] / or whitespace
+  return raw.trim().replace(/[.$#\[\]\/\s]/g, '_').slice(0, 40);
+}
+
+// Pushes this device's current totals + profile to Firebase under the
+// person's sync key. Only called on End Week, per the daily-cap design.
+// Pushes this device's ENTIRE state to Firebase under the person's sync
+// key, so opening Forge on any other device with the same key restores
+// everything — not just a leaderboard summary. Runs on every local save.
+let syncInFlight = false;
+function pushFullState() {
+  const key = getSyncKey();
+  if (!key) return; // no sync key set — purely local, nothing to push
+  if (syncInFlight) return; // avoid stacking redundant writes
+  syncInFlight = true;
+  const totalLevel = Object.values(state.xpData).reduce((s,x)=>s+getLevel(x),0) +
+                      Object.values(state.sideXp).reduce((s,x)=>s+getLevel(x),0);
+  const totalXp = Object.values(state.xpData).reduce((s,x)=>s+x,0) +
+                   Object.values(state.sideXp).reduce((s,x)=>s+x,0);
+  const payload = {
+    ...state,
+    totalLevel,
+    totalXp,
+    updatedAt: Date.now(),
+  };
+  db.ref('users/' + key).set(payload)
+    .catch(err => {
+      console.error('Sync failed:', err);
+      showPopup('SYNC FAILED: ' + (err.message || err.code || 'unknown error'), '#ff5050');
+    })
+    .finally(() => { syncInFlight = false; });
+}
+
+// Pulls another device's full state down and adopts it as this device's
+// local state — used when switching/loading a different sync key.
+function pullFullState(key) {
+  return db.ref('users/' + key).once('value').then(snap => snap.val());
+}
+
+// Live-listens to everyone's synced totals for the leaderboard display.
+// Only totalLevel/totalXp/name/color/icon are needed here, so we listen
+// at the 'users' root but only read those summary fields per entry.
+let leaderboardData = {};
+db.ref('users').on('value', (snapshot) => {
+  leaderboardData = snapshot.val() || {};
+  if (appStarted) render();
+}, (err) => {
+  console.error('Leaderboard listener error:', err);
+  if (appStarted) showPopup('LEADERBOARD READ FAILED: ' + (err.message || err.code || 'unknown'), '#ff5050');
+});
+
+let state = {
+  completed: {},
+  xpData: { CHEST:0, BACK:0, ABS:0, SHOULDERS:0 },
+  sideCompleted: {},
+  sideXp: { LEGS:0, ARMS:0, CARDIO:0, FULLBODY:0 },
+  myWeek: null, // null until seeded on first load; array of 7 day objects, fully user-owned
+  restDay: 7, // which day number is the rest day
+  sideQuestSkills: null, // null until first computed; frozen list of skills missing from myWeek, recalculated only on End Week
+  profile: { name: '', color: '#c4451c', icon: 'FLAME' },
+  lastEndWeekDate: null,
+};
+let sideQuestsOpen = false;
+let showProfileModal = false;
+let draftProfile = null;
+let achievementsOpen = false;
+let leaderboardOpen = false;
+let syncKeyRevealed = false;
+let exercisePickerSkill = null; // which skill's picker is open, or null
+let exercisePickerSelected = null; // selected exercise object, or 'custom'
+let exercisePickerCustomName = '';
+let lastRenderedSideQuests = null; // snapshot from the most recent render(), so click handlers never disagree with what's on screen
+let daySwapTarget = null; // which day number is being swapped, or null
+let slotEditTarget = null; // { day, idx } of the exercise slot being edited, or null
+let globalSearchQuery = '';
+let globalSearchSelected = null; // the exercise object picked from global search results
+let pendingModal = null; // 'reset' | 'endweek' | null
+
+// Seeds a fresh custom week from Rotation A's original layout, only used
+// once when no custom week exists yet. After this, the week is entirely
+// user-owned — no more auto-cycling rotations.
+function seedDefaultWeek() {
+  const base = WORKOUT_ROTATIONS[0];
+  return base.map(day => ({
+    day: day.day,
+    skill: day.skill,
+    skill2: day.skill2,
+    sub: day.sub,
+    exercises: day.exercises.map(ex => ({ ...ex })),
+    rest: day.rest,
+  }));
+}
+
+function currentWorkouts() {
+  if (!state.myWeek) {
+    state.myWeek = seedDefaultWeek();
+  }
+  // apply the relocatable rest day on top of the stored week
+  return state.myWeek.map(day => {
+    const isRestNow = day.day === state.restDay;
+    const wasRestOriginally = day.skill === 'REST';
+    if (isRestNow && !wasRestOriginally) {
+      return { day: day.day, skill: 'REST', sub: 'Mobility', exercises: [
+        { name: 'Light stretching or walk', sets: 1, repsLabel: 'No counts needed', reps: 1, unit: 'rep', diff: 0 }
+      ], rest: 'Recovery day' };
+    }
+    if (!isRestNow && wasRestOriginally) {
+      // this slot used to be rest but isn't anymore — give it a sensible
+      // default focus (Full Body) until the user customizes it themselves
+      const pool = allExercisesForSkill('FULLBODY').slice(0, 3);
+      return { day: day.day, skill: 'FULLBODY', sub: 'Custom Focus', exercises: pool.map(ex => ({ ...ex, skill: 'FULLBODY' })), rest: 'Rest 30 sec between sets' };
+    }
+    return day;
+  });
+}
+
+// Side Quests dynamically show the 4 LEAST-trained skills (by total XP)
+// of all 8 — recalculated live as XP changes, no fixed rotation anymore.
+// Side Quests show every skill NOT covered by the current main week,
+// guaranteeing full coverage of all 8 skills between the two areas. This
+// list is computed once and stored in state — it stays fixed all week and
+// only recalculates when End Week runs, so it doesn't reshuffle mid-session
+// every time you earn XP. Sorted highest-to-lowest XP among the missing skills.
+// True only when every single skill still sits at 0 XP — meaning the person
+// is still actively setting up their week for the first time, not training
+// yet. In this state only, Side Quests recalculate live on every day-swap
+// or exercise edit, since freezing a stale pre-setup snapshot would be
+// wonky. The moment any real XP exists anywhere, freezing resumes normally.
+function allSkillsAtZero() {
+  const allXp = { ...state.xpData, ...state.sideXp };
+  return Object.values(allXp).every(xp => (xp || 0) === 0);
+}
+
+function recalculateSideQuestSkills() {
+  const coveredThisWeek = new Set();
+  (state.myWeek || []).forEach(day => {
+    if (day.skill && day.skill !== 'REST') coveredThisWeek.add(day.skill);
+    day.exercises.forEach(ex => { if (ex.skill) coveredThisWeek.add(ex.skill); });
+  });
+  const ALL_SKILLS = ['CHEST','BACK','SHOULDERS','ABS','LEGS','ARMS','CARDIO','FULLBODY'];
+  const allXp = { ...state.xpData, ...state.sideXp };
+  const missing = ALL_SKILLS.filter(sk => !coveredThisWeek.has(sk));
+  missing.sort((a, b) => (allXp[b] || 0) - (allXp[a] || 0)); // highest to lowest XP
+  state.sideQuestSkills = missing;
+}
+
+function currentSideQuests() {
+  if (!state.myWeek) currentWorkouts(); // ensure the week is seeded first
+  if (!state.sideQuestSkills) recalculateSideQuestSkills();
+  const result = {};
+  state.sideQuestSkills.forEach(skillKey => {
+    const exercises = allExercisesForSkill(skillKey).slice(0, 5);
+    result[skillKey] = {
+      label: skillKey === 'FULLBODY' ? 'Full Body / Other' : skillKey.charAt(0) + skillKey.slice(1).toLowerCase(),
+      exercises: exercises.map(ex => ({ ...ex, skill: skillKey })),
+    };
+  });
+  return result;
+}
+
+// Collects every exercise for a given skill across ALL 4 main rotations and
+// ALL 4 side quest rotations, deduplicated by name, for the exercise picker.
+function allExercisesForSkill(skillKey) {
+  const seen = new Set();
+  const result = [];
+  WORKOUT_ROTATIONS.forEach(rotation => {
+    rotation.forEach(day => {
+      day.exercises.forEach(ex => {
+        const exSkill = ex.skill || day.skill;
+        if (exSkill === skillKey && !seen.has(ex.name)) {
+          seen.add(ex.name);
+          result.push(ex);
+        }
+      });
+    });
+  });
+  SIDE_QUEST_ROTATIONS.forEach(rotation => {
+    const quest = rotation[skillKey];
+    if (quest) {
+      quest.exercises.forEach(ex => {
+        if (!seen.has(ex.name)) {
+          seen.add(ex.name);
+          result.push(ex);
+        }
+      });
+    }
+  });
+  return result;
+}
+
+async function persist() {
+  try { localStorage.setItem('forge-state', JSON.stringify(state)); } catch (e) {}
+  pushFullState();
+  render();
+}
+
+function tryLocalRestore() {
+  try {
+    const raw = localStorage.getItem('forge-state');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+      // Reversal: an earlier version briefly scaled XP up 320x to stretch the
+      // timeline to 99. That's reverted now (curve shrunk instead), so undo
+      // that scale-up for anyone who has it, back to normal small numbers.
+      if (parsed.xpFormulaV2) {
+        const SCALE = 320;
+        for (const k of Object.keys(state.xpData)) state.xpData[k] = Math.round((state.xpData[k] || 0) / SCALE);
+        for (const k of Object.keys(state.sideXp)) state.sideXp[k] = Math.round((state.sideXp[k] || 0) / SCALE);
+        delete state.xpFormulaV2;
+        persist();
+      }
+    }
+  } catch (e) {}
+}
+
+// ===================== POPUPS / LEVEL BANNER =====================
+// These render into a separate overlay layer, inserted exactly once per
+// occurrence and left alone until their own timeout removes them — never
+// re-created by the main render() loop, which is what caused the restart glitch.
+function showPopup(text, color) {
+  const id = 'popup-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  const layer = document.getElementById('overlay-layer');
+  const existingCount = layer.querySelectorAll('.xp-popup').length;
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'xp-popup anim';
+  el.style.color = color;
+  el.style.textShadow = `0 0 8px ${color}99`;
+  el.style.top = (70 + existingCount * 26) + 'px';
+  el.textContent = text;
+  layer.appendChild(el);
+  setTimeout(() => { const e = document.getElementById(id); if (e) e.remove(); }, 1800);
+}
+
+function showLevelFlash(skill, level) {
+  const id = 'levelflash-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  const layer = document.getElementById('overlay-layer');
+  const color = SKILL_COLOR[skill] || '#c4451c';
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'levelbanner anim';
+  el.style.background = `linear-gradient(90deg,${color},#f2c14e)`;
+  el.style.boxShadow = `0 0 20px ${color}99`;
+  el.innerHTML = `<span style="color:#0d0e10;font-weight:900;font-size:13px;letter-spacing:0.03em;">✨ ${skill} LEVEL UP — ${level}</span>`;
+  layer.appendChild(el);
+  setTimeout(() => { const e = document.getElementById(id); if (e) e.remove(); }, 2200);
+}
+
+// ===================== TOGGLE LOGIC =====================
+function toggleMain(day, idx, ex) {
+  const key = day + '-' + idx;
+  const wasDone = !!state.completed[key];
+  state.completed[key] = !wasDone;
+  const w = currentWorkouts().find(w => w.day === day);
+  const skillKey = ex.skill || w.skill;
+  if (skillKey !== 'REST') {
+    const gained = xpForExercise(ex);
+    const prevXp = state.xpData[skillKey] || 0;
+    const prevLevel = getLevel(prevXp);
+    if (!wasDone) {
+      state.xpData[skillKey] = prevXp + gained;
+      const newLevel = getLevel(state.xpData[skillKey]);
+      showPopup('+' + gained + ' ' + skillKey + ' XP', SKILL_COLOR[skillKey]);
+      if (newLevel > prevLevel) showLevelFlash(skillKey, newLevel);
+    } else {
+      state.xpData[skillKey] = Math.max(0, prevXp - gained);
+    }
+  }
+  persist();
+}
+
+function toggleSide(skillKey, idx, ex) {
+  const key = skillKey + '-' + idx;
+  const wasDone = !!state.sideCompleted[key];
+  // capture the label BEFORE changing XP — currentSideQuests() is dynamic and
+  // this skill's own XP change could knock it out of the bottom-4 instantly,
+  // making a fresh lookup afterward come back undefined
+  const skillLabel = skillKey === 'FULLBODY' ? 'Full Body' : skillKey.charAt(0) + skillKey.slice(1).toLowerCase();
+  state.sideCompleted[key] = !wasDone;
+  const gained = xpForExercise(ex);
+  const prevXp = state.sideXp[skillKey] || 0;
+  const prevLevel = getLevel(prevXp);
+  if (!wasDone) {
+    state.sideXp[skillKey] = prevXp + gained;
+    const newLevel = getLevel(state.sideXp[skillKey]);
+    showPopup('+' + gained + ' ' + skillLabel + ' XP', SKILL_COLOR[skillKey]);
+    if (newLevel > prevLevel) showLevelFlash(skillLabel, newLevel);
+  } else {
+    state.sideXp[skillKey] = Math.max(0, prevXp - gained);
+  }
+  persist();
+}
+
+function dayProgress(day, exCount) {
+  let done = 0;
+  for (let i = 0; i < exCount; i++) if (state.completed[day + '-' + i]) done++;
+  return done;
+}
+
+function todayDateString() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+function confirmEndWeek() {
+  state.completed = {};
+  state.sideCompleted = {};
+  state.lastEndWeekDate = todayDateString();
+  recalculateSideQuestSkills();
+  pendingModal = null;
+  persist();
+  showPopup('WEEK CASHED IN — XP BANKED', '#f2c14e');
+}
+
+function confirmResetAll() {
+  state = {
+    completed: {},
+    xpData: { CHEST:0, BACK:0, ABS:0, SHOULDERS:0 },
+    sideCompleted: {},
+    sideXp: { LEGS:0, ARMS:0, CARDIO:0, FULLBODY:0 },
+    myWeek: null,
+    restDay: 7,
+    sideQuestSkills: null,
+    profile: { name: '', color: '#c4451c', icon: 'FLAME' },
+    lastEndWeekDate: null,
+  };
+  pendingModal = null;
+  persist();
+}
+
+// ===================== RENDER =====================
+function esc(s) { return String(s); }
+
+function renderSkillBar(key, xp, label) {
+  const prog = xpProgress(xp || 0);
+  const color = SKILL_COLOR[key];
+  const icon = skillIconSvg(key, color, 16);
+  return `
+    <div class="skillrow" onclick="window.__forge.openExercisePicker('${key}')" style="cursor:pointer;">
+      <div class="top">
+        <span class="name" style="color:${color}">${icon} ${label}</span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="lv">Lv ${prog.level}${prog.level < 99 ? ' (' + Math.floor(prog.pct) + '%)' : ''}</span>
+          <span style="color:#52555a;font-size:13px;">›</span>
+        </span>
+      </div>
+      <div class="barbg"><div class="barfg" style="width:${prog.pct}%;background:linear-gradient(90deg,${color},${color}cc);box-shadow:0 0 6px ${color}88;"></div></div>
+    </div>`;
+}
+
+function renderExRow(key, ex, isDone, exColor, onclickAttr, editAttr) {
+  const xpVal = xpForExercise(ex);
+  return `
+    <div class="exrow" style="background:${isDone ? exColor + '10' : 'transparent'}" ${onclickAttr}>
+      <div class="checkbox" style="border-color:${isDone ? exColor : '#3a3d42'};background:${isDone ? exColor : 'transparent'};color:#0d0e10;">${isDone ? '✓' : ''}</div>
+      <div class="exname ${isDone ? 'done' : ''}">${esc(ex.name)}</div>
+      <div class="exreps">${ex.sets > 1 ? ex.sets + '×' + ex.repsLabel : ex.repsLabel}</div>
+      ${xpVal > 0 ? `<div class="exxp" style="color:${exColor}">${xpVal}xp</div>` : ''}
+      ${editAttr ? `<button onclick="event.stopPropagation();${editAttr}" style="background:none;border:none;color:#52555a;cursor:pointer;padding:2px 4px;margin-left:4px;font-size:12px;">✎</button>` : ''}
+    </div>`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+
+  // Lock background scroll while a side panel is open, so the main page
+  // can't scroll out from under the fixed-height panel and peek through.
+  document.body.style.overflow = (achievementsOpen || leaderboardOpen) ? 'hidden' : '';
+
+  const totalLevel = Object.values(state.xpData).reduce((s,x)=>s+getLevel(x),0) +
+                      Object.values(state.sideXp).reduce((s,x)=>s+getLevel(x),0);
+  const totalXp = Object.values(state.xpData).reduce((s,x)=>s+x,0) +
+                   Object.values(state.sideXp).reduce((s,x)=>s+x,0);
+
+  let html = '';
+
+  const profileLabel = state.profile.name ? state.profile.name : 'Set name';
+  html += `<div class="topbar">
+    <h1>FORGE</h1>
+    <div class="btnrow">
+      <button class="iconbtn" onclick="window.__forge.openProfile()" style="border-color:${state.profile.color};color:${state.profile.color};display:flex;align-items:center;gap:5px;">${profileIconSvg(state.profile.icon, state.profile.color, 13)} ${profileLabel}</button>
+      <button class="iconbtn" onclick="window.__forge.openResetModal()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="hint">Auto-saves to this browser on this device — no account, no server.</div>`;
+
+  // Global search — searches every exercise across every skill, colored and
+  // icon-tagged by whichever body part it actually belongs to. Selecting one
+  // logs XP to that exercise's real skill, regardless of where you searched.
+  const globalResults = globalSearchQuery.trim() ? exerciseLibrarySuggestions(globalSearchQuery, 8) : [];
+  html += `<div style="margin:14px 0;">
+    <input id="global-search-input" type="text" placeholder="🔍 Search any exercise..." value="${esc(globalSearchQuery)}"
+      oninput="window.__forge.updateGlobalSearch(this.value)" autocomplete="off"
+      style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid #3a3d42;background:#131519;color:#e8e6e1;font-family:inherit;font-size:14px;box-sizing:border-box;" />
+    ${globalResults.length ? `
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px;">
+        ${globalResults.map(([gName, gDiff]) => {
+          const gSkill = EXERCISE_LIBRARY_SKILL_MAP[gName] || 'FULLBODY';
+          const gColor = SKILL_COLOR[gSkill];
+          return `<button onclick="window.__forge.selectGlobalResult('${gName.replace(/'/g, "\\'")}')"
+            style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:6px;border:1px solid ${gColor}66;background:${gColor}15;color:${gColor};font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;text-align:left;">
+            ${skillIconSvg(gSkill, gColor, 15)} <span style="flex:1;">${esc(gName)}</span> <span style="font-size:10px;opacity:0.7;">${gSkill === 'FULLBODY' ? 'FULL BODY' : gSkill}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    ` : (globalSearchQuery.trim() ? `<div style="margin-top:6px;font-size:11px;color:#52555a;">No matches — try a different name.</div>` : '')}
+  </div>`;
+
+  html += `<div class="banner">
+    <div><div class="lbl">TOTAL LEVEL</div><div class="lvl">${totalLevel}</div></div>
+    <div><div class="lbl" style="text-align:right">TOTAL XP</div><div class="xp">${totalXp.toLocaleString()}</div></div>
+  </div>`;
+
+  html += `<div class="skills">`;
+  html += renderSkillBar('CHEST', state.xpData.CHEST, 'CHEST');
+  html += renderSkillBar('BACK', state.xpData.BACK, 'BACK');
+  html += renderSkillBar('SHOULDERS', state.xpData.SHOULDERS, 'SHOULDERS');
+  html += renderSkillBar('ABS', state.xpData.ABS, 'ABS');
+  html += renderSkillBar('LEGS', state.sideXp.LEGS, 'LEGS');
+  html += renderSkillBar('ARMS', state.sideXp.ARMS, 'ARMS');
+  html += renderSkillBar('CARDIO', state.sideXp.CARDIO, 'CARDIO');
+  html += renderSkillBar('FULLBODY', state.sideXp.FULLBODY, 'FULL BODY');
+  html += `</div>`;
+  html += `<p style="text-align:center;color:#3a3d42;font-size:10px;margin:-2px 0 18px;letter-spacing:0.04em;">TAP A SKILL TO LOG A ONE-OFF EXERCISE</p>`;
+
+  currentWorkouts().forEach(w => {
+    const done = dayProgress(w.day, w.exercises.length);
+    const isFull = done === w.exercises.length;
+    const color = SKILL_COLOR[w.skill];
+    html += `<div class="day" style="border-color:${isFull ? color : '#232629'};opacity:${w.skill==='REST'?0.85:1}">
+      <div class="dayhead" style="background:${isFull ? color+'14' : 'transparent'}">
+        <div>
+          <span class="daynum">DAY ${w.day}</span>
+          <div class="titles">
+            <span class="focus" style="color:${color}">${skillIconSvg(w.skill, color, 17)} ${w.skill}${w.skill2 ? ' / ' + w.skill2 : ''}</span>
+            <span class="sub">${w.sub}</span>
+            <button onclick="window.__forge.openDaySwap(${w.day})" style="background:none;border:none;color:#6b6f76;cursor:pointer;padding:2px 4px;font-size:14px;">▾</button>
+          </div>
+        </div>
+      </div>
+      <div>`;
+    w.exercises.forEach((ex, idx) => {
+      const key = w.day + '-' + idx;
+      const isDone = !!state.completed[key];
+      const exColor = SKILL_COLOR[ex.skill || w.skill];
+      const editAttr = w.skill !== 'REST' ? `window.__forge.openExerciseSlotEdit(${w.day},${idx})` : null;
+      html += renderExRow(key, ex, isDone, exColor, `onclick="window.__forge.toggleMain(${w.day},${idx})"`, editAttr);
+    });
+    html += `</div><div class="rest">${w.rest}</div></div>`;
+  });
+
+  html += `<p class="footer-tip">HARDER VARIATIONS = MORE XP/SET. LEVEL UP EACH SKILL TO 99.</p>`;
+
+  html += `<div class="sidequests">
+    <div class="sqhead" onclick="window.__forge.toggleSideQuests()">
+      <div><div class="title">${sideQuestIconSvg('#d8a23a', 16)} SIDE QUESTS</div><div class="desc">Optional — Legs, Arms, Cardio, Full Body</div></div>
+      <span class="chevron" style="transform:${sideQuestsOpen?'rotate(180deg)':'none'}">⌄</span>
+    </div>`;
+  if (sideQuestsOpen) {
+    html += `<div class="sqbody">`;
+    const renderedSideQuests = currentSideQuests();
+    lastRenderedSideQuests = renderedSideQuests;
+    Object.entries(renderedSideQuests).forEach(([skillKey, quest]) => {
+      const color = SKILL_COLOR[skillKey];
+      const prog = xpProgress(state.sideXp[skillKey] || 0);
+      html += `<div class="sqskill">
+        <div class="sqskillhead">
+          <div class="top" style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:${color};font-weight:800;letter-spacing:0.04em">${skillIconSvg(skillKey, color, 14)} ${quest.label.toUpperCase()}</span>
+            <span style="color:#8a8f98">Lv ${prog.level}${prog.level<99?' ('+Math.floor(prog.pct)+'%)':''}</span>
+          </div>
+          <div class="barbg" style="height:5px"><div class="barfg" style="width:${prog.pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div>
+        </div>
+        <div>`;
+      quest.exercises.forEach((ex, idx) => {
+        const key = skillKey + '-' + idx;
+        const isDone = !!state.sideCompleted[key];
+        html += renderExRow(key, ex, isDone, color, `onclick="window.__forge.toggleSide('${skillKey}',${idx})"`);
+      });
+      html += `</div></div>`;
+    });
+    html += `<p style="font-size:10px;color:#52555a;text-align:center;margin-top:8px;font-style:italic;">Log these whenever — no day requirement, no rest timers enforced.</p></div>`;
+  }
+  html += `</div>`;
+
+  html += `<button class="bigbtn endweek" onclick="window.__forge.openEndWeekModal()">End Week — Bank XP &amp; Reset Checklist</button>`;
+
+  app.innerHTML = html;
+
+  // Achievements tab + slide-in star map panel
+  const maxed = capeIsMaxed(state.xpData, state.sideXp);
+  app.innerHTML += `<div class="ach-tab ${achievementsOpen ? 'shifted' : ''}" style="${leaderboardOpen ? 'display:none;' : ''}" onclick="window.__forge.toggleAchievements()">${achievementsOpen ? '✕ CLOSE' : (maxed ? '★ ALL STARS LIT' : 'ACHIEVEMENTS')}</div>`;
+
+  const allXpForMap = { ...state.xpData, ...state.sideXp };
+  const legendOrder = ['CHEST','BACK','SHOULDERS','ABS','LEGS','ARMS','CARDIO','FULLBODY'];
+  const legendLabels = { CHEST:'Chest', BACK:'Back', SHOULDERS:'Shoulders', ABS:'Abs', LEGS:'Legs', ARMS:'Arms', CARDIO:'Cardio', FULLBODY:'Full Body' };
+  const legendHtml = legendOrder.map(skill => {
+    const xp = allXpForMap[skill] || 0;
+    const level = getLevel(xp);
+    const total = CONSTELLATIONS[skill].stars.length;
+    const lit = level > 0 ? Math.min(total, Math.max(1, Math.round((level / 99) * total))) : 0;
+    const color = SKILL_COLOR[skill];
+    return `<div class="legend-row">
+      <span class="lname" style="color:${color}">${skillIconSvg(skill, color, 14)} ${legendLabels[skill]}</span>
+      <span class="lstars">Lv ${level} · ${lit}/${total} ★</span>
+    </div>`;
+  }).join('');
+
+  app.innerHTML += `
+    <div class="ach-panel-overlay ${achievementsOpen ? 'open' : ''}" onclick="window.__forge.closeAchievements()"></div>
+    <div class="ach-panel ${achievementsOpen ? 'open' : ''}">
+      <h2 class="ach-title" style="margin-bottom:4px;color:#c9a227;">Star Map</h2>
+      <div class="ach-sub">${maxed ? 'Every constellation complete — all 8 skills at level 99.' : 'Each skill traces its own constellation as it levels.'}</div>
+      ${maxed ? `<div class="maxcape-banner">✦ ALL CONSTELLATIONS COMPLETE ✦</div>` : ''}
+      <div class="cape-stage">${renderConstellationMap(state.xpData, state.sideXp)}</div>
+      <div class="legend">${legendHtml}</div>
+    </div>`;
+
+  // Leaderboard tab + slide-in panel (left edge) — pulls real synced data
+  // from Firebase, refreshed by pushing this device's own numbers whenever
+  // the panel is opened (see toggleLeaderboard/openLeaderboard).
+  const myTotalLevel = Object.values(state.xpData).reduce((s,x)=>s+getLevel(x),0) +
+                        Object.values(state.sideXp).reduce((s,x)=>s+getLevel(x),0);
+  const myTotalXp = Object.values(state.xpData).reduce((s,x)=>s+x,0) +
+                     Object.values(state.sideXp).reduce((s,x)=>s+x,0);
+  const hasName = !!state.profile.name;
+  const mySyncKey = getSyncKey();
+
+  app.innerHTML += `<div class="lb-tab ${leaderboardOpen ? 'shifted' : ''}" style="${achievementsOpen ? 'display:none;' : ''}" onclick="window.__forge.toggleLeaderboard()">${leaderboardOpen ? '✕ CLOSE' : 'LEADERBOARD'}</div>`;
+
+  const entries = Object.entries(leaderboardData)
+    .map(([key, val]) => ({ key, ...val, profile: val.profile || {} }))
+    .sort((a, b) => (b.totalLevel - a.totalLevel) || (b.totalXp - a.totalXp));
+
+  const rowsHtml = entries.length ? entries.map((e, i) => {
+    const isMe = mySyncKey && e.key === mySyncKey;
+    const pname = e.profile.name || 'Anonymous';
+    const pcolor = e.profile.color || '#8a8f98';
+    const picon = e.profile.icon || 'FLAME';
+    return `<div class="lb-row ${isMe ? 'me' : ''}">
+      <span class="lb-rank ${i === 0 ? 'top' : ''}">${i+1}</span>
+      <span style="display:flex;align-items:center;gap:6px;color:${pcolor};" class="lb-name">${profileIconSvg(picon, pcolor, 16)} ${esc(pname)}${isMe ? ' (you)' : ''}</span>
+      <span class="lb-score">Lv ${e.totalLevel || 0} · ${(e.totalXp||0).toLocaleString()} xp</span>
+    </div>`;
+  }).join('') : `<div class="lb-empty">No one has synced yet.<br/>Set up your sync key below to appear here.</div>`;
+
+  const syncSetupHtml = !mySyncKey ? `
+    <div style="margin-top:14px;padding:14px;background:#131519;border:1px solid #2a2d31;border-radius:8px;">
+      <div style="font-size:12px;color:#8a8f98;margin-bottom:10px;line-height:1.5;">
+        Set a sync key once — type the same one on any device to load your data there too. Share it with friends so everyone shows up on one leaderboard.
+      </div>
+      <input id="sync-key-input" type="text" maxlength="40" placeholder="e.g. RedWolf42"
+        style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;margin-bottom:10px;box-sizing:border-box;" />
+      <button class="bigbtn" style="background:#15171a;border-color:#3a5ac4;color:#6fd8ff;" onclick="window.__forge.saveSyncKey()">SET SYNC KEY</button>
+    </div>` : `
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:#52555a;">
+      Your sync key: <span style="color:#6fd8ff;font-family:monospace;">${syncKeyRevealed ? esc(mySyncKey) : '•'.repeat(Math.min(mySyncKey.length, 12))}</span>
+      <button class="iconbtn" onclick="window.__forge.toggleSyncKeyReveal()" style="margin-left:6px;padding:3px 8px;">${syncKeyRevealed ? 'Hide' : 'Reveal'}</button>
+      <br/><button class="iconbtn" onclick="window.__forge.openLoadKey()" style="margin-top:8px;">Switch / Load Different Key</button>
+    </div>`;
+
+  app.innerHTML += `
+    <div class="lb-panel-overlay ${leaderboardOpen ? 'open' : ''}" onclick="window.__forge.closeLeaderboard()"></div>
+    <div class="lb-panel ${leaderboardOpen ? 'open' : ''}">
+      <h2 class="ach-title" style="margin-bottom:4px;color:#6fd8ff;">Leaderboard</h2>
+      <div class="ach-sub">Ranked by Total Level, then Total XP.</div>
+      <div style="font-size:10px;color:${firebaseConnected === true ? '#4ea876' : firebaseConnected === false ? '#ff5050' : '#8a8f98'};margin-bottom:10px;">
+        ${firebaseConnected === true ? '● connected' : firebaseConnected === false ? '● disconnected' : '○ checking...'}
+      </div>
+      ${rowsHtml}
+      ${syncSetupHtml}
+      ${!hasName ? `<div style="margin-top:12px;text-align:center;"><button class="iconbtn" onclick="window.__forge.openProfile()" style="border-color:#3a5ac4;color:#6fd8ff;">Set your name to appear properly →</button></div>` : ''}
+    </div>`;
+
+  if (pendingModal === 'endweek') {
+    const daysFullyDone = currentWorkouts().filter(w => w.skill !== 'REST' && dayProgress(w.day, w.exercises.length) === w.exercises.length).length;
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal danger" style="border-color:#2d6e4e;">
+          <div class="mtitle">END THIS WEEK?</div>
+          <div class="mbody">${daysFullyDone < 6 ? `You've fully completed ${daysFullyDone} of 6 training days. ` : 'All 6 training days complete. '}Your skill levels and XP stay locked in — only the daily checklist resets for a fresh week. Your custom day setup stays exactly as you've set it.</div>
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeModal()">CANCEL</button>
+            <button class="confirm-green" onclick="window.__forge.confirmEndWeek()">YES, END WEEK</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (pendingModal === 'endweek-limited') {
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal" style="border:1px solid #3a3d42;text-align:center;">
+          <div class="mtitle">ALREADY ENDED TODAY</div>
+          <div class="mbody">You've already used End Week once today. Come back tomorrow to bank another week and rotate again — this keeps XP gains realistic for the leaderboard.</div>
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeModal()" style="flex:1;">OK</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (pendingModal === 'dayswap') {
+    const ALL_SKILLS = ['CHEST','BACK','SHOULDERS','ABS','LEGS','ARMS','CARDIO','FULLBODY'];
+    const optionsHtml = ALL_SKILLS.map(sk => {
+      const color = SKILL_COLOR[sk];
+      return `<button onclick="window.__forge.confirmDaySwap('${sk}')"
+        style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;margin-bottom:6px;border-radius:6px;border:1px solid ${color}66;background:${color}15;color:${color};font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+        ${skillIconSvg(sk, color, 15)} ${sk === 'FULLBODY' ? 'FULL BODY' : sk}
+      </button>`;
+    }).join('');
+    const restOptionHtml = `<button onclick="window.__forge.confirmRestSwap()"
+      style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;margin-top:4px;border-radius:6px;border:1px solid #4a4d52;background:#1a1c1f;color:#8a8f98;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+      💤 MAKE THIS REST DAY
+    </button>`;
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal" style="border:1px solid #2a2d31;">
+          <div class="mtitle">SWAP DAY ${daySwapTarget}'S FOCUS</div>
+          <div class="mbody" style="margin-bottom:12px;">Pick a new body part for this day, or make it your rest day. This changes it permanently going forward, not just for this week.</div>
+          ${optionsHtml}
+          ${restOptionHtml}
+          <div class="mrow" style="margin-top:8px;">
+            <button class="cancel" onclick="window.__forge.closeModal()" style="flex:1;">CANCEL</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (pendingModal === 'globalconfirm') {
+    const sel = globalSearchSelected;
+    if (!sel) { pendingModal = null; }
+    else {
+      const color = SKILL_COLOR[sel.skill];
+      const amountInputId = 'global-amount-input';
+      const previewAmount = 10;
+      app.innerHTML += `
+        <div class="modal-overlay">
+          <div class="modal" style="border:1px solid ${color};">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              ${skillIconSvg(sel.skill, color, 18)}
+              <span class="mtitle" style="color:${color};margin:0;">${sel.skill === 'FULLBODY' ? 'FULL BODY' : sel.skill}</span>
+            </div>
+            <div class="mbody" style="margin-bottom:14px;font-weight:700;color:#e8e6e1;">${esc(sel.name)}</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <label style="font-size:12px;color:#8a8f98;white-space:nowrap;">Amount (reps):</label>
+              <input id="${amountInputId}" type="number" min="1" max="500" value="${previewAmount}"
+                oninput="window.__forge.updateGlobalConfirmPreview()"
+                style="width:90px;padding:8px 10px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;box-sizing:border-box;" />
+              <span id="global-xp-preview" style="font-size:13px;font-weight:800;color:${color};margin-left:auto;">+${xpForExercise({reps:previewAmount,unit:'rep',diff:sel.diff})} xp</span>
+            </div>
+            <div class="mrow">
+              <button class="cancel" onclick="window.__forge.closeModal()">CANCEL</button>
+              <button class="confirm-green" onclick="window.__forge.confirmGlobalLog()">LOG XP</button>
+            </div>
+          </div>
+        </div>`;
+    }
+  } else if (pendingModal === 'exercisepicker') {
+    const skillKey = exercisePickerSkill;
+    const color = SKILL_COLOR[skillKey];
+    const exercises = allExercisesForSkill(skillKey);
+    const sel = exercisePickerSelected;
+    const isCustom = sel === 'custom';
+    const isSlotEdit = !!slotEditTarget;
+
+    let previewAmount = 10;
+    let previewUnit = 'rep';
+    let previewDiff = 3;
+    let previewName = '';
+    let previewFromLibrary = false;
+    if (sel && !isCustom) {
+      previewAmount = sel.reps; previewUnit = sel.unit; previewDiff = sel.diff; previewName = sel.name;
+    } else if (isCustom) {
+      previewName = exercisePickerCustomName;
+      const libMatch = lookupExerciseLibrary(exercisePickerCustomName);
+      if (libMatch !== null) {
+        previewDiff = libMatch;
+        previewFromLibrary = true;
+      } else {
+        previewDiff = exercisePickerCustomName.trim() ? estimateCustomDifficulty(exercisePickerCustomName) : 3;
+      }
+    }
+    const amountInputId = 'picker-amount-input';
+    const suggestions = isCustom ? exerciseLibrarySuggestions(exercisePickerCustomName, 6, skillKey) : [];
+
+    const listHtml = exercises.map((ex, i) => `
+      <div class="exrow" onclick="window.__forge.selectPickerExercise(${i})"
+        style="cursor:pointer;background:${(sel && sel.name === ex.name) ? color+'15' : 'transparent'};border:1px solid ${(sel && sel.name === ex.name) ? color : '#232629'};border-radius:6px;margin-bottom:4px;">
+        <div class="exname" style="flex:1;">${esc(ex.name)}</div>
+        <div class="exreps">${ex.unit === 'sec' ? ex.reps + ' sec' : ex.reps + ' rep'}</div>
+      </div>`).join('');
+
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal" style="border:1px solid ${color};max-height:85vh;display:flex;flex-direction:column;">
+          <div class="mtitle" style="color:${color};">${isSlotEdit ? 'REPLACE THIS EXERCISE' : skillKey + ' EXERCISES'}</div>
+          <div class="mbody" style="margin-bottom:10px;">${isSlotEdit ? 'Pick a permanent replacement for this exercise slot, or add your own.' : 'Pick one for a quick one-time XP log, or add your own.'}</div>
+          <div style="overflow-y:auto;flex:1;margin-bottom:12px;max-height:240px;">
+            ${listHtml}
+            <div class="exrow" onclick="window.__forge.selectPickerCustom()"
+              style="cursor:pointer;background:${isCustom ? color+'15' : 'transparent'};border:1px solid ${isCustom ? color : '#3a5ac4'};border-radius:6px;margin-top:6px;">
+              <div class="exname" style="flex:1;color:#6fd8ff;">+ Custom Exercise</div>
+            </div>
+          </div>
+          ${isCustom ? `
+            <input id="picker-custom-name" type="text" maxlength="40" placeholder="e.g. Pike push-ups"
+              value="${esc(exercisePickerCustomName)}" oninput="window.__forge.updatePickerCustomName(this.value)"
+              autocomplete="off"
+              style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;margin-bottom:6px;box-sizing:border-box;" />
+            ${suggestions.length ? `
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                ${suggestions.map(([sName]) => `<button onclick="window.__forge.pickSuggestion('${sName.replace(/'/g, "\\'")}')"
+                  style="font-size:11px;padding:5px 9px;border-radius:5px;border:1.5px solid ${color};background:${color}2a;color:${color};cursor:pointer;font-family:inherit;box-shadow:0 0 6px ${color}55;">
+                  ${esc(sName)}
+                </button>`).join('')}
+              </div>
+            ` : ''}
+            <div style="font-size:10px;color:#52555a;margin-bottom:10px;">
+              ${exercisePickerCustomName.trim()
+                ? (previewFromLibrary
+                    ? `Difficulty: ${previewDiff} / 6 (matched in our exercise library)`
+                    : `Estimated difficulty: ${previewDiff} / 6 (guessed from the name — not in our library yet)`)
+                : "Type any exercise — we'll match it or estimate a fair difficulty automatically."}
+            </div>
+          ` : ''}
+          ${sel ? `
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <label style="font-size:12px;color:#8a8f98;white-space:nowrap;">Amount (${previewUnit === 'sec' ? 'sec' : 'reps'}):</label>
+              <input id="${amountInputId}" type="number" min="1" max="500" value="${previewAmount}"
+                oninput="window.__forge.updatePickerPreview()"
+                style="width:90px;padding:8px 10px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;box-sizing:border-box;" />
+              <span id="picker-xp-preview" style="font-size:13px;font-weight:800;color:${color};margin-left:auto;">+${xpForExercise({reps:previewAmount,unit:previewUnit,diff:previewDiff})} xp</span>
+            </div>
+          ` : ''}
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeModal()">CANCEL</button>
+            <button class="confirm-green" onclick="${isSlotEdit ? 'window.__forge.confirmSlotEdit()' : 'window.__forge.confirmPickerLog()'}" ${(!sel || (isCustom && !exercisePickerCustomName.trim())) ? 'disabled style="opacity:0.4;"' : ''}>${isSlotEdit ? 'SAVE SLOT' : 'LOG XP'}</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (pendingModal === 'loadkey') {
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal" style="border:1px solid #2a2d31;">
+          <div class="mtitle">LOAD A DIFFERENT KEY</div>
+          <div class="mbody">Type your sync key to load that profile on this device. This overwrites your current local progress with whatever's saved under that key.</div>
+          <input id="load-key-input" type="text" maxlength="40" placeholder="e.g. RedWolf42"
+            style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;margin-bottom:14px;box-sizing:border-box;" />
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeModal()">CANCEL</button>
+            <button class="confirm-green" onclick="window.__forge.confirmLoadKey()">LOAD</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (pendingModal === 'reset') {
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal danger">
+          <div class="mtitle">RESET EVERYTHING?</div>
+          <div class="mbody">This wipes every skill back to Level 1 — Chest, Back, Shoulders, Abs, and all Side Quest skills. Today's checklist clears too.</div>
+          <div class="mwarn">This can't be undone.</div>
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeModal()">CANCEL</button>
+            <button class="confirm-red" onclick="window.__forge.confirmReset()">YES, RESET ALL</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (showProfileModal) {
+    const dp = draftProfile || state.profile;
+    const icons = ['FLAME','BOLT','SKULL','CROWN','WOLF','EAGLE','DRAGON','STAR','GEM','TARGET','MOUNTAIN','SKULLCROSS'];
+    const colors = ['#c4451c','#3a7d8c','#b08c2a','#5a8c3a','#9a4a8c','#c43a5a','#3a5ac4','#e8b923','#4ea876','#8a8f98'];
+    app.innerHTML += `
+      <div class="modal-overlay">
+        <div class="modal" style="border:1px solid #2a2d31;">
+          <div class="mtitle">YOUR PROFILE</div>
+          <div class="mbody" style="margin-bottom:14px;">Set a name, icon, and color — this is how you'll show up on the leaderboard.</div>
+          <input id="profile-name-input" type="text" maxlength="16" placeholder="Enter your name"
+            value="${esc(dp.name)}"
+            style="width:100%;padding:10px 12px;border-radius:6px;border:1px solid #3a3d42;background:#0d0e10;color:#e8e6e1;font-family:inherit;font-size:14px;margin-bottom:14px;box-sizing:border-box;" />
+          <div style="font-size:11px;color:#6b6f76;margin-bottom:6px;letter-spacing:0.05em;">ICON</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            ${icons.map(ic => `<button onclick="window.__forge.pickIcon('${ic}')" style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:6px;border:1.5px solid ${dp.icon===ic?dp.color:'#3a3d42'};background:${dp.icon===ic?dp.color+'22':'#15171a'};cursor:pointer;">${profileIconSvg(ic, dp.icon===ic?dp.color:'#8a8f98', 18)}</button>`).join('')}
+          </div>
+          <div style="font-size:11px;color:#6b6f76;margin-bottom:6px;letter-spacing:0.05em;">COLOR</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+            ${colors.map(c => `<button onclick="window.__forge.pickColor('${c}')" style="width:30px;height:30px;border-radius:50%;border:2px solid ${dp.color===c?'#f2efe9':'transparent'};background:${c};cursor:pointer;"></button>`).join('')}
+          </div>
+          <div class="mrow">
+            <button class="cancel" onclick="window.__forge.closeProfile()">CANCEL</button>
+            <button class="confirm-green" onclick="window.__forge.saveProfile()">SAVE</button>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// ===================== PUBLIC API =====================
+window.__forge = {
+  toggleMain: (day, idx) => {
+    const w = currentWorkouts().find(w => w.day === day);
+    toggleMain(day, idx, w.exercises[idx]);
+  },
+  toggleSide: (skillKey, idx) => {
+    const quests = lastRenderedSideQuests || currentSideQuests();
+    const quest = quests[skillKey];
+    if (!quest || !quest.exercises[idx]) return; // stale click after data shifted underneath it — just ignore safely
+    toggleSide(skillKey, idx, quest.exercises[idx]);
+  },
+  toggleSideQuests: () => { sideQuestsOpen = !sideQuestsOpen; render(); },
+  openEndWeekModal: () => {
+    pendingModal = (state.lastEndWeekDate === todayDateString()) ? 'endweek-limited' : 'endweek';
+    render();
+  },
+  openResetModal: () => { pendingModal = 'reset'; render(); },
+  closeModal: () => { pendingModal = null; render(); },
+  confirmEndWeek: confirmEndWeek,
+  confirmReset: confirmResetAll,
+  openProfile: () => {
+    draftProfile = { ...state.profile };
+    showProfileModal = true;
+    render();
+  },
+  closeProfile: () => {
+    showProfileModal = false;
+    draftProfile = null;
+    render();
+  },
+  pickIcon: (icon) => {
+    const input = document.getElementById('profile-name-input');
+    if (input) draftProfile.name = input.value;
+    draftProfile.icon = icon;
+    render();
+  },
+  pickColor: (color) => {
+    const input = document.getElementById('profile-name-input');
+    if (input) draftProfile.name = input.value;
+    draftProfile.color = color;
+    render();
+  },
+  saveProfile: () => {
+    const input = document.getElementById('profile-name-input');
+    const name = input ? input.value.trim().slice(0, 16) : draftProfile.name;
+    state.profile = { ...draftProfile, name };
+    showProfileModal = false;
+    draftProfile = null;
+    persist();
+  },
+  openAchievements: () => { achievementsOpen = true; leaderboardOpen = false; render(); },
+  closeAchievements: () => { achievementsOpen = false; render(); },
+  toggleAchievements: () => { achievementsOpen = !achievementsOpen; if (achievementsOpen) leaderboardOpen = false; render(); },
+  openLeaderboard: () => { leaderboardOpen = true; achievementsOpen = false; render(); },
+  closeLeaderboard: () => { leaderboardOpen = false; render(); },
+  toggleLeaderboard: () => {
+    leaderboardOpen = !leaderboardOpen;
+    if (leaderboardOpen) { achievementsOpen = false; }
+    render();
+  },
+  saveSyncKey: () => {
+    const input = document.getElementById('sync-key-input');
+    if (!input || !input.value.trim()) return;
+    const key = sanitizeKey(input.value);
+    setSyncKey(key);
+    pushFullState();
+    render();
+  },
+  openLoadKey: () => { pendingModal = 'loadkey'; render(); },
+  toggleSyncKeyReveal: () => { syncKeyRevealed = !syncKeyRevealed; render(); },
+  openExercisePicker: (skillKey) => {
+    exercisePickerSkill = skillKey;
+    exercisePickerSelected = null;
+    exercisePickerCustomName = '';
+    slotEditTarget = null;
+    pendingModal = 'exercisepicker';
+    render();
+  },
+  openExerciseSlotEdit: (dayNum, idx) => {
+    const day = currentWorkouts().find(d => d.day === dayNum);
+    if (!day) return;
+    const ex = day.exercises[idx];
+    slotEditTarget = { day: dayNum, idx };
+    exercisePickerSkill = ex.skill || day.skill;
+    exercisePickerSelected = null;
+    exercisePickerCustomName = '';
+    pendingModal = 'exercisepicker';
+    render();
+  },
+  confirmSlotEdit: () => {
+    const sel = exercisePickerSelected;
+    if (!sel || !slotEditTarget) return;
+    const isCustom = sel === 'custom';
+    const nameInput = document.getElementById('picker-custom-name');
+    const amountInput = document.getElementById('picker-amount-input');
+    const name = isCustom ? (nameInput ? nameInput.value.trim() : exercisePickerCustomName.trim()) : sel.name;
+    if (isCustom && !name) return;
+    const amount = amountInput ? parseInt(amountInput.value, 10) || 1 : sel.reps;
+    const unit = isCustom ? 'rep' : sel.unit;
+    const diff = isCustom ? (lookupExerciseLibrary(name) !== null ? lookupExerciseLibrary(name) : estimateCustomDifficulty(name)) : sel.diff;
+    const skillKey = exercisePickerSkill;
+
+    if (!state.myWeek) state.myWeek = seedDefaultWeek();
+    const dayIdx = state.myWeek.findIndex(d => d.day === slotEditTarget.day);
+    if (dayIdx === -1) return;
+    const repsLabel = unit === 'sec' ? amount + ' sec' : String(amount);
+    state.myWeek[dayIdx].exercises[slotEditTarget.idx] = {
+      name, sets: 3, repsLabel, reps: amount, unit, diff, skill: skillKey,
+    };
+
+    pendingModal = null;
+    slotEditTarget = null;
+    exercisePickerSkill = null;
+    exercisePickerSelected = null;
+    exercisePickerCustomName = '';
+    if (allSkillsAtZero()) recalculateSideQuestSkills();
+    persist();
+    showPopup('Exercise updated', SKILL_COLOR[skillKey]);
+  },
+  selectPickerExercise: (idx) => {
+    const exercises = allExercisesForSkill(exercisePickerSkill);
+    exercisePickerSelected = exercises[idx];
+    render();
+  },
+  selectPickerCustom: () => {
+    exercisePickerSelected = 'custom';
+    render();
+  },
+  updatePickerCustomName: (val) => {
+    exercisePickerCustomName = val;
+    render();
+    // restore focus + cursor position since render() rebuilds the input fresh
+    const input = document.getElementById('picker-custom-name');
+    if (input) {
+      input.focus();
+      const len = input.value.length;
+      input.setSelectionRange(len, len);
+    }
+  },
+  updateGlobalSearch: (val) => {
+    globalSearchQuery = val;
+    render();
+    const input = document.getElementById('global-search-input');
+    if (input) {
+      input.focus();
+      const len = input.value.length;
+      input.setSelectionRange(len, len);
+    }
+  },
+  selectGlobalResult: (name) => {
+    const entry = EXERCISE_LIBRARY.find(([n]) => n === name);
+    if (!entry) return;
+    const skill = EXERCISE_LIBRARY_SKILL_MAP[name];
+    if (!skill) return;
+    globalSearchSelected = { name: entry[0], diff: entry[1], skill };
+    pendingModal = 'globalconfirm';
+    globalSearchQuery = '';
+    render();
+  },
+  updateGlobalConfirmPreview: () => {
+    const amountInput = document.getElementById('global-amount-input');
+    const previewSpan = document.getElementById('global-xp-preview');
+    if (!amountInput || !previewSpan || !globalSearchSelected) return;
+    const amount = parseInt(amountInput.value, 10) || 1;
+    previewSpan.textContent = '+' + xpForExercise({ reps: amount, unit: 'rep', diff: globalSearchSelected.diff }) + ' xp';
+  },
+  confirmGlobalLog: () => {
+    const sel = globalSearchSelected;
+    if (!sel) return;
+    const amountInput = document.getElementById('global-amount-input');
+    const amount = amountInput ? parseInt(amountInput.value, 10) || 1 : 10;
+    const ex = { name: sel.name, reps: amount, unit: 'rep', diff: sel.diff };
+    const gained = xpForExercise(ex);
+
+    const skillKey = sel.skill;
+    const isSideSkill = skillKey in state.sideXp;
+    const pool = isSideSkill ? state.sideXp : state.xpData;
+    const prevXp = pool[skillKey] || 0;
+    const prevLevel = getLevel(prevXp);
+    pool[skillKey] = prevXp + gained;
+    const newLevel = getLevel(pool[skillKey]);
+
+    pendingModal = null;
+    globalSearchSelected = null;
+    if (allSkillsAtZero()) recalculateSideQuestSkills();
+    persist();
+    showPopup('+' + gained + ' ' + skillKey + ' XP', SKILL_COLOR[skillKey]);
+    if (newLevel > prevLevel) showLevelFlash(skillKey, newLevel);
+  },
+  pickSuggestion: (name) => {
+    exercisePickerCustomName = name;
+    render();
+  },
+  updatePickerPreview: () => {
+    const amountInput = document.getElementById('picker-amount-input');
+    const previewSpan = document.getElementById('picker-xp-preview');
+    if (!amountInput || !previewSpan) return;
+    const sel = exercisePickerSelected;
+    if (!sel) return;
+    const isCustom = sel === 'custom';
+    const amount = parseInt(amountInput.value, 10) || 1;
+    const unit = isCustom ? 'rep' : sel.unit;
+    const diff = isCustom ? estimateCustomDifficulty(exercisePickerCustomName) : sel.diff;
+    previewSpan.textContent = '+' + xpForExercise({ reps: amount, unit, diff }) + ' xp';
+  },
+  confirmPickerLog: () => {
+    const sel = exercisePickerSelected;
+    if (!sel) return;
+    const isCustom = sel === 'custom';
+    const nameInput = document.getElementById('picker-custom-name');
+    const amountInput = document.getElementById('picker-amount-input');
+    const name = isCustom ? (nameInput ? nameInput.value.trim() : exercisePickerCustomName.trim()) : sel.name;
+    if (isCustom && !name) return;
+    const amount = amountInput ? parseInt(amountInput.value, 10) || 1 : sel.reps;
+    const diff = isCustom ? (lookupExerciseLibrary(name) !== null ? lookupExerciseLibrary(name) : estimateCustomDifficulty(name)) : sel.diff;
+    const unit = isCustom ? 'rep' : sel.unit;
+    const ex = { name, reps: amount, unit, diff };
+    const gained = xpForExercise(ex);
+
+    const skillKey = exercisePickerSkill;
+    const isSideSkill = skillKey in state.sideXp;
+    const pool = isSideSkill ? state.sideXp : state.xpData;
+    const prevXp = pool[skillKey] || 0;
+    const prevLevel = getLevel(prevXp);
+    pool[skillKey] = prevXp + gained;
+    const newLevel = getLevel(pool[skillKey]);
+
+    pendingModal = null;
+    exercisePickerSkill = null;
+    exercisePickerSelected = null;
+    exercisePickerCustomName = '';
+    persist();
+    showPopup('+' + gained + ' ' + skillKey + ' XP', SKILL_COLOR[skillKey]);
+    if (newLevel > prevLevel) showLevelFlash(skillKey, newLevel);
+  },
+  openDaySwap: (dayNum) => {
+    daySwapTarget = dayNum;
+    pendingModal = 'dayswap';
+    render();
+  },
+  confirmDaySwap: (newSkill) => {
+    const dayNum = daySwapTarget;
+    if (!dayNum) return;
+    const pool = allExercisesForSkill(newSkill);
+    if (pool.length === 0) { showPopup('No exercises found for that skill', '#ff5050'); return; }
+    if (!state.myWeek) state.myWeek = seedDefaultWeek();
+    // count how many OTHER days already use this skill, so repeats get a
+    // different slice of the pool instead of identical exercises every time
+    const otherDaysWithSkill = state.myWeek.filter(d => d.day !== dayNum && d.skill === newSkill).length;
+    const offset = (otherDaysWithSkill * 3) % pool.length;
+    const chosen = [];
+    for (let i = 0; i < Math.min(3, pool.length); i++) {
+      chosen.push(pool[(offset + i) % pool.length]);
+    }
+    const dayIdx = state.myWeek.findIndex(d => d.day === dayNum);
+    if (dayIdx === -1) return;
+    state.myWeek[dayIdx] = {
+      day: dayNum,
+      skill: newSkill,
+      skill2: undefined,
+      sub: 'Custom Focus',
+      exercises: chosen.map(ex => ({ ...ex, skill: newSkill })),
+      rest: 'Rest 30 sec between sets',
+    };
+    // if this day WAS the rest day, the week now has no rest day at all —
+    // move rest to any OTHER day so there's always exactly one, picking the
+    // lowest-numbered day that isn't this one (simple and predictable)
+    if (state.restDay === dayNum) {
+      const candidates = [1,2,3,4,5,6,7].filter(d => d !== dayNum);
+      state.restDay = candidates[0];
+    }
+    pendingModal = null;
+    daySwapTarget = null;
+    if (allSkillsAtZero()) recalculateSideQuestSkills();
+    persist();
+    showPopup('Day ' + dayNum + ' now focuses on ' + newSkill, SKILL_COLOR[newSkill]);
+  },
+  confirmRestSwap: () => {
+    const dayNum = daySwapTarget;
+    if (!dayNum) return;
+    if (!state.myWeek) state.myWeek = seedDefaultWeek();
+    const oldRestDay = state.restDay;
+    state.restDay = dayNum;
+    // the day that WAS rest needs a real focus now — default it to Full Body
+    // until the user customizes it themselves, same fallback as elsewhere
+    if (oldRestDay !== dayNum) {
+      const oldDayIdx = state.myWeek.findIndex(d => d.day === oldRestDay);
+      if (oldDayIdx !== -1 && state.myWeek[oldDayIdx].skill === 'REST') {
+        const pool = allExercisesForSkill('FULLBODY').slice(0, 3);
+        state.myWeek[oldDayIdx] = {
+          day: oldRestDay, skill: 'FULLBODY', sub: 'Custom Focus',
+          exercises: pool.map(ex => ({ ...ex, skill: 'FULLBODY' })),
+          rest: 'Rest 30 sec between sets',
+        };
+      }
+    }
+    pendingModal = null;
+    daySwapTarget = null;
+    if (allSkillsAtZero()) recalculateSideQuestSkills();
+    persist();
+    showPopup('Day ' + dayNum + ' is now your rest day', '#8a8f98');
+  },
+  confirmLoadKey: () => {
+    const input = document.getElementById('load-key-input');
+    if (!input || !input.value.trim()) return;
+    const key = sanitizeKey(input.value);
+    setSyncKey(key);
+    pendingModal = null;
+    render();
+    pullFullState(key).then(data => {
+      if (data) {
+        // adopt the remote state wholesale, but keep using the same key
+        const { totalLevel, totalXp, updatedAt, ...restoredState } = data;
+        state = Object.assign({
+          completed: {}, xpData: { CHEST:0, BACK:0, ABS:0, SHOULDERS:0 },
+          sideCompleted: {}, sideXp: { LEGS:0, ARMS:0, CARDIO:0, FULLBODY:0 },
+          myWeek: null, restDay: 7, profile: { name:'', color:'#c4451c', icon:'FLAME' },
+          lastEndWeekDate: null,
+        }, restoredState);
+        try { localStorage.setItem('forge-state', JSON.stringify(state)); } catch (e) {}
+        showPopup('Loaded ' + (state.profile.name || key) + ' — full progress restored', '#4ea876');
+      } else {
+        showPopup('No data found for that key yet — starting fresh under it', '#e8703a');
+      }
+      render();
+    });
+  },
+};
+
+// ===================== INIT =====================
+tryLocalRestore();
+render();
+appStarted = true;
+</script>
+</body>
+</html>
